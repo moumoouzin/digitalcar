@@ -1,19 +1,20 @@
+
 import React from "react";
 
 export const Footer = () => {
   return (
-    <footer className="bg-black text-white py-5">
-      <div className="flex justify-between items-center max-w-none mx-auto px-5 max-md:max-w-[991px] max-sm:max-w-screen-sm">
+    <footer className="bg-black text-white py-6">
+      <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
         <img
           src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
           alt="Digital Car Logo"
-          className="h-[40px]"
+          className="h-12"
         />
-        <div className="text-xs font-normal">
+        <div className="text-sm font-normal">
           Digital car, todos os direitos reservados
         </div>
-        <div className="flex gap-2.5">
-          <a href="https://instagram.com" aria-label="Instagram">
+        <div className="flex gap-4">
+          <a href="https://instagram.com" aria-label="Instagram" className="text-white hover:text-gray-300 transition-colors">
             <div
               dangerouslySetInnerHTML={{
                 __html:
@@ -21,7 +22,7 @@ export const Footer = () => {
               }}
             />
           </a>
-          <a href="https://wa.me/5561981974187" aria-label="WhatsApp">
+          <a href="https://wa.me/5561981974187" aria-label="WhatsApp" className="text-white hover:text-gray-300 transition-colors">
             <div
               dangerouslySetInnerHTML={{
                 __html:
@@ -29,7 +30,7 @@ export const Footer = () => {
               }}
             />
           </a>
-          <a href="https://maps.google.com" aria-label="Location">
+          <a href="https://maps.google.com" aria-label="Location" className="text-white hover:text-gray-300 transition-colors">
             <div
               dangerouslySetInnerHTML={{
                 __html:

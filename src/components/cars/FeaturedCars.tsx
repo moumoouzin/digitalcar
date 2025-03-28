@@ -1,10 +1,12 @@
+
 import React from "react";
 import { CarCard } from "./CarCard";
 
 export const FeaturedCars = () => {
   return (
-    <div className="bg-[#D9D9D9] mb-10 p-5 rounded-lg">
-      <div className="flex gap-5 overflow-x-auto">
+    <div className="bg-neutral-100 mb-12 p-6 rounded-xl shadow-sm">
+      <h2 className="text-xl font-bold mb-4">Veículos em Destaque</h2>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <CarCard
           image="https://cdn.builder.io/api/v1/image/assets/TEMP/5a31f9e49e1c83e28e34b3e46ac555552fb82580"
           name="Honda HR-V"

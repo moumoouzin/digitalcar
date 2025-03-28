@@ -1,3 +1,4 @@
+
 import React from "react";
 
 interface ValueCardProps {
@@ -8,14 +9,14 @@ interface ValueCardProps {
 
 export const ValueCard = ({ icon, title, description }: ValueCardProps) => {
   return (
-    <div className="border bg-neutral-100 text-center p-[15px] border-solid border-[rgba(0,0,0,0.8)]">
+    <div className="border bg-neutral-100 text-center p-6 border-solid border-neutral-300 rounded-lg shadow-sm">
       <img
         src={icon}
         alt={`${title} Icon`}
-        className="w-[40px] h-[40px] mx-auto mb-[10px]"
+        className="w-16 h-16 mx-auto mb-4"
       />
-      <div className="text-[7px] font-normal mb-[5px]">{title}</div>
-      <div className="text-[5px] font-bold">{description}</div>
+      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+      <p className="text-sm text-neutral-700">{description}</p>
     </div>
   );
 };
