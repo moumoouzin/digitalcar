@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -39,21 +38,32 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
+
+type CarAd = Database['public']['Tables']['car_ads']['Row'] & {
+  car_images?: Array<{
+    image_url: string;
+    is_primary: boolean | null;
+  }>;
+  car_features?: Array<{
+    feature_id: string;
+  }>;
+  images?: string[];
+  features?: string[];
+};
 
 const CarsList = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [cars, setCars] = useState<any[]>([]);
+  const [cars, setCars] = useState<CarAd[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "pending">("all");
   const [isLoading, setIsLoading] = useState(true);
 
-  // Carregar anúncios do Supabase quando o componente for montado
   useEffect(() => {
     fetchCars();
   }, []);
 
-  // Função para buscar os carros do Supabase
   const fetchCars = async () => {
     try {
       setIsLoading(true);
@@ -71,17 +81,14 @@ const CarsList = () => {
         throw error;
       }
 
-      // Formatar dados para o formato esperado pela UI
       const formattedCars = data.map(car => {
-        // Encontrar a imagem primária
-        const primaryImage = car.car_images?.find((img: any) => img.is_primary)?.image_url;
-        // Ou usar a primeira imagem se não houver primária
+        const primaryImage = car.car_images?.find((img) => img.is_primary)?.image_url;
         const firstImage = car.car_images?.length > 0 ? car.car_images[0].image_url : null;
         
         return {
           ...car,
-          price: `R$ ${car.price.toLocaleString('pt-BR')}`,
-          features: car.car_features?.map((f: any) => f.feature_id) || [],
+          price: car.price,
+          features: car.car_features?.map((f) => f.feature_id) || [],
           images: [primaryImage || firstImage].filter(Boolean)
         };
       });
@@ -99,7 +106,6 @@ const CarsList = () => {
     }
   };
 
-  // Função para filtrar os anúncios
   const filteredCars = cars.filter((car) => {
     const matchesSearch = 
       car.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -112,18 +118,14 @@ const CarsList = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Função para editar um anúncio
   const handleEdit = (id: string) => {
     navigate(`/admin/painel/car/edit/${id}`);
   };
 
-  // Função para visualizar um anúncio
   const handleView = (id: string) => {
-    // Na implementação real, você pode abrir em uma nova aba ou mostrar um modal
     window.open(`/car/${id}`, "_blank");
   };
 
-  // Função para aprovar um anúncio pendente
   const handleApprove = async (id: string) => {
     try {
       const { error } = await supabase
@@ -135,7 +137,6 @@ const CarsList = () => {
         throw error;
       }
       
-      // Atualizar o estado local
       setCars(cars.map(car => 
         car.id === id ? { ...car, status: "active" } : car
       ));
@@ -155,7 +156,6 @@ const CarsList = () => {
     }
   };
   
-  // Função para rejeitar um anúncio pendente
   const handleReject = async (id: string) => {
     try {
       const { error } = await supabase
@@ -167,7 +167,6 @@ const CarsList = () => {
         throw error;
       }
       
-      // Atualizar o estado local
       setCars(cars.filter(car => car.id !== id));
       
       toast({
@@ -185,7 +184,6 @@ const CarsList = () => {
     }
   };
 
-  // Função para excluir um anúncio
   const handleDelete = async (id: string) => {
     try {
       const { error } = await supabase
@@ -197,7 +195,6 @@ const CarsList = () => {
         throw error;
       }
       
-      // Atualizar o estado local
       setCars(cars.filter(car => car.id !== id));
       
       toast({
@@ -301,7 +298,7 @@ const CarsList = () => {
                   <TableRow key={car.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        {car.images.length > 0 && (
+                        {car.images && car.images.length > 0 && (
                           <img 
                             src={car.images[0]} 
                             alt={car.title} 
@@ -316,7 +313,7 @@ const CarsList = () => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{car.price}</TableCell>
+                    <TableCell>{`R$ ${car.price.toLocaleString('pt-BR')}`}</TableCell>
                     <TableCell>
                       {car.status === "active" ? (
                         <Badge variant="default" className="bg-green-500">Ativo</Badge>
@@ -325,8 +322,8 @@ const CarsList = () => {
                       )}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">{new Date(car.created_at).toLocaleDateString('pt-BR')}</TableCell>
-                    <TableCell className="hidden md:table-cell">{car.views}</TableCell>
-                    <TableCell className="hidden md:table-cell">{car.contacts}</TableCell>
+                    <TableCell className="hidden md:table-cell">{car.views || 0}</TableCell>
+                    <TableCell className="hidden md:table-cell">{car.contacts || 0}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

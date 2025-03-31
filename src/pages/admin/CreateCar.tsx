@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,6 +22,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
+import { Database } from "@/integrations/supabase/types";
+
+// Defina a URL do Supabase
+const SUPABASE_URL = "https://jqrwvfmbocfpspomwddq.supabase.co";
 
 // Schema de validação para o formulário
 const carFormSchema = z.object({
