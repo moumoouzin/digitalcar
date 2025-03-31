@@ -19,6 +19,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { v4 as uuidv4 } from "uuid";
 
 // Schema de validação para o formulário
 const carFormSchema = z.object({
@@ -87,6 +89,7 @@ const CreateCar = () => {
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState("info");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Inicializar o formulário com validação Zod
   const form = useForm<CarFormValues>({
@@ -150,47 +153,113 @@ const CreateCar = () => {
     );
   };
 
+  // Função para fazer upload de uma imagem para o Supabase Storage
+  const uploadImageToSupabase = async (file: File, carId: string, isPrimary: boolean = false): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${carId}/${uuidv4()}.${fileExt}`;
+      const { data, error } = await supabase.storage
+        .from('car-images')
+        .upload(fileName, file);
+
+      if (error) {
+        console.error('Erro ao fazer upload da imagem:', error);
+        return null;
+      }
+
+      // Registrar a imagem no banco de dados
+      const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/car-images/${fileName}`;
+      
+      await supabase
+        .from('car_images')
+        .insert({
+          car_id: carId,
+          image_url: imageUrl,
+          is_primary: isPrimary
+        });
+
+      return imageUrl;
+    } catch (error) {
+      console.error('Erro ao processar upload da imagem:', error);
+      return null;
+    }
+  };
+
   // Função para enviar o formulário
-  const onSubmit = (data: CarFormValues) => {
-    // Criar um novo objeto de anúncio com os dados do formulário
-    const newCar = {
-      id: Date.now().toString(), // ID único baseado no timestamp
-      title: data.title,
-      price: `R$ ${parseFloat(data.price).toLocaleString('pt-BR')}`,
-      brand: selectedBrand,
-      model: data.model,
-      year: data.year,
-      color: data.color,
-      transmission: data.transmission,
-      mileage: data.mileage,
-      description: data.description,
-      whatsapp: data.whatsapp,
-      status: "pending", // Anúncios começam com status pendente
-      createdAt: new Date().toISOString().split('T')[0], // Data atual no formato YYYY-MM-DD
-      views: 0,
-      contacts: 0,
-      features: selectedFeatures,
-      images: imagePreviewUrls.length > 0 ? [imagePreviewUrls[0]] : [] // Salva pelo menos a primeira imagem como URL
-    };
+  const onSubmit = async (data: CarFormValues) => {
+    try {
+      setIsSubmitting(true);
+      
+      // Criar um novo objeto de anúncio com os dados do formulário
+      const newCar = {
+        title: data.title,
+        price: parseFloat(data.price),
+        brand: selectedBrand,
+        model: data.model,
+        year: data.year,
+        color: data.color,
+        transmission: data.transmission,
+        mileage: data.mileage,
+        description: data.description,
+        whatsapp: data.whatsapp,
+        status: "pending", 
+      };
 
-    // Recuperar anúncios existentes do localStorage ou iniciar com array vazio
-    const existingCars = JSON.parse(localStorage.getItem("carsList") || "[]");
-    
-    // Adicionar o novo anúncio à lista
-    const updatedCars = [newCar, ...existingCars];
-    
-    // Salvar a lista atualizada no localStorage
-    localStorage.setItem("carsList", JSON.stringify(updatedCars));
+      // Inserir anúncio no Supabase
+      const { data: carData, error } = await supabase
+        .from('car_ads')
+        .insert(newCar)
+        .select('id')
+        .single();
 
-    // Mostrar toast de sucesso
-    toast({
-      title: "Anúncio criado com sucesso!",
-      description: "Seu anúncio foi enviado para aprovação.",
-      variant: "default",
-    });
+      if (error) {
+        throw error;
+      }
 
-    // Redirecionar para lista de anúncios
-    navigate("/admin/painel/cars");
+      const carId = carData.id;
+
+      // Salvar features no banco de dados
+      if (selectedFeatures.length > 0) {
+        const featureObjects = selectedFeatures.map(featureId => ({
+          car_id: carId,
+          feature_id: featureId
+        }));
+
+        const { error: featuresError } = await supabase
+          .from('car_features')
+          .insert(featureObjects);
+
+        if (featuresError) {
+          console.error('Erro ao salvar características:', featuresError);
+        }
+      }
+
+      // Fazer upload das imagens
+      const uploadPromises = uploadedImages.map((file, index) => 
+        uploadImageToSupabase(file, carId, index === 0) // A primeira imagem é definida como primária
+      );
+
+      await Promise.all(uploadPromises);
+
+      // Mostrar toast de sucesso
+      toast({
+        title: "Anúncio criado com sucesso!",
+        description: "Seu anúncio foi enviado para aprovação.",
+        variant: "default",
+      });
+
+      // Redirecionar para lista de anúncios
+      navigate("/admin/painel/cars");
+    } catch (error: any) {
+      console.error('Erro ao criar anúncio:', error);
+      toast({
+        title: "Erro ao criar anúncio",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -537,7 +606,9 @@ const CreateCar = () => {
                 >
                   Voltar
                 </Button>
-                <Button type="submit">Publicar Anúncio</Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Enviando..." : "Publicar Anúncio"}
+                </Button>
               </CardFooter>
             </Card>
           </TabsContent>
@@ -547,4 +618,4 @@ const CreateCar = () => {
   );
 };
 
-export default CreateCar; 
+export default CreateCar;

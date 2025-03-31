@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -33,78 +34,11 @@ import {
   MoreVerticalIcon, 
   EyeIcon, 
   CheckCircleIcon, 
-  XCircleIcon 
+  XCircleIcon,
+  Loader2Icon 
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-
-// Dados fictícios de anúncios para demonstração (serão usados apenas se não houver dados no localStorage)
-const MOCK_CARS = [
-  {
-    id: "1",
-    title: "Honda HR-V EXL 2020",
-    price: "R$ 96.900",
-    brand: "Honda",
-    model: "HR-V",
-    year: "2020",
-    status: "active",
-    createdAt: "2023-10-15",
-    views: 152,
-    contacts: 8,
-    images: ["https://cdn.builder.io/api/v1/image/assets/TEMP/1326335909abdf93418d99a8b827cffe82d9d0ac"],
-  },
-  {
-    id: "2",
-    title: "Fiat Strada Freedom 2020",
-    price: "R$ 79.900",
-    brand: "Fiat",
-    model: "Strada",
-    year: "2020",
-    status: "active",
-    createdAt: "2023-10-10",
-    views: 98,
-    contacts: 4,
-    images: ["https://cdn.builder.io/api/v1/image/assets/TEMP/6268af9d2847f1916069fb0ecd9b13d06c7e57d0"],
-  },
-  {
-    id: "3",
-    title: "Jeep Renegade 1.8 2019",
-    price: "R$ 69.900",
-    brand: "Jeep",
-    model: "Renegade",
-    year: "2019",
-    status: "active",
-    createdAt: "2023-10-05",
-    views: 201,
-    contacts: 12,
-    images: ["https://cdn.builder.io/api/v1/image/assets/TEMP/b20c7304f7e42390cf4d6e6cba09b0967971384b"],
-  },
-  {
-    id: "4",
-    title: "Toyota Corolla XEI 2022",
-    price: "R$ 112.900",
-    brand: "Toyota",
-    model: "Corolla",
-    year: "2022",
-    status: "pending",
-    createdAt: "2023-10-20",
-    views: 0,
-    contacts: 0,
-    images: [],
-  },
-  {
-    id: "5",
-    title: "Volkswagen Polo Highline 2021",
-    price: "R$ 86.500",
-    brand: "Volkswagen",
-    model: "Polo",
-    year: "2021",
-    status: "pending",
-    createdAt: "2023-10-19",
-    views: 0,
-    contacts: 0,
-    images: [],
-  },
-];
+import { supabase } from "@/integrations/supabase/client";
 
 const CarsList = () => {
   const navigate = useNavigate();
@@ -112,22 +46,58 @@ const CarsList = () => {
   const [cars, setCars] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "pending">("all");
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Carregar anúncios do localStorage quando o componente for montado
+  // Carregar anúncios do Supabase quando o componente for montado
   useEffect(() => {
-    // Tenta carregar os anúncios do localStorage
-    const savedCars = localStorage.getItem("carsList");
-    
-    if (savedCars) {
-      // Se existirem anúncios salvos, carrega-os
-      setCars(JSON.parse(savedCars));
-    } else {
-      // Se não houver anúncios salvos, usa os dados de exemplo
-      setCars(MOCK_CARS);
-      // Opcionalmente, salva os dados de exemplo no localStorage para uso futuro
-      localStorage.setItem("carsList", JSON.stringify(MOCK_CARS));
-    }
+    fetchCars();
   }, []);
+
+  // Função para buscar os carros do Supabase
+  const fetchCars = async () => {
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase
+        .from('car_ads')
+        .select(`
+          *,
+          car_images (image_url, is_primary),
+          car_features (feature_id)
+        `)
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+        throw error;
+      }
+
+      // Formatar dados para o formato esperado pela UI
+      const formattedCars = data.map(car => {
+        // Encontrar a imagem primária
+        const primaryImage = car.car_images?.find((img: any) => img.is_primary)?.image_url;
+        // Ou usar a primeira imagem se não houver primária
+        const firstImage = car.car_images?.length > 0 ? car.car_images[0].image_url : null;
+        
+        return {
+          ...car,
+          price: `R$ ${car.price.toLocaleString('pt-BR')}`,
+          features: car.car_features?.map((f: any) => f.feature_id) || [],
+          images: [primaryImage || firstImage].filter(Boolean)
+        };
+      });
+      
+      setCars(formattedCars);
+    } catch (error: any) {
+      console.error('Erro ao carregar anúncios:', error);
+      toast({
+        title: "Erro ao carregar anúncios",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Função para filtrar os anúncios
   const filteredCars = cars.filter((car) => {
@@ -154,57 +124,105 @@ const CarsList = () => {
   };
 
   // Função para aprovar um anúncio pendente
-  const handleApprove = (id: string) => {
-    const updatedCars = cars.map(car => 
-      car.id === id ? { ...car, status: "active" } : car
-    );
-    
-    // Atualiza o estado
-    setCars(updatedCars);
-    
-    // Atualiza o localStorage
-    localStorage.setItem("carsList", JSON.stringify(updatedCars));
-    
-    toast({
-      title: "Anúncio aprovado",
-      description: "O anúncio agora está ativo no site.",
-      variant: "default",
-    });
+  const handleApprove = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('car_ads')
+        .update({ status: 'active' })
+        .eq('id', id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Atualizar o estado local
+      setCars(cars.map(car => 
+        car.id === id ? { ...car, status: "active" } : car
+      ));
+      
+      toast({
+        title: "Anúncio aprovado",
+        description: "O anúncio agora está ativo no site.",
+        variant: "default",
+      });
+    } catch (error: any) {
+      console.error('Erro ao aprovar anúncio:', error);
+      toast({
+        title: "Erro ao aprovar anúncio",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive",
+      });
+    }
   };
   
   // Função para rejeitar um anúncio pendente
-  const handleReject = (id: string) => {
-    const updatedCars = cars.filter(car => car.id !== id);
-    
-    // Atualiza o estado
-    setCars(updatedCars);
-    
-    // Atualiza o localStorage
-    localStorage.setItem("carsList", JSON.stringify(updatedCars));
-    
-    toast({
-      title: "Anúncio rejeitado",
-      description: "O anúncio foi removido da lista.",
-      variant: "destructive",
-    });
+  const handleReject = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('car_ads')
+        .delete()
+        .eq('id', id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Atualizar o estado local
+      setCars(cars.filter(car => car.id !== id));
+      
+      toast({
+        title: "Anúncio rejeitado",
+        description: "O anúncio foi removido da lista.",
+        variant: "destructive",
+      });
+    } catch (error: any) {
+      console.error('Erro ao rejeitar anúncio:', error);
+      toast({
+        title: "Erro ao rejeitar anúncio",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Função para excluir um anúncio
-  const handleDelete = (id: string) => {
-    const updatedCars = cars.filter(car => car.id !== id);
-    
-    // Atualiza o estado
-    setCars(updatedCars);
-    
-    // Atualiza o localStorage
-    localStorage.setItem("carsList", JSON.stringify(updatedCars));
-    
-    toast({
-      title: "Anúncio excluído",
-      description: "O anúncio foi removido permanentemente.",
-      variant: "destructive",
-    });
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('car_ads')
+        .delete()
+        .eq('id', id);
+        
+      if (error) {
+        throw error;
+      }
+      
+      // Atualizar o estado local
+      setCars(cars.filter(car => car.id !== id));
+      
+      toast({
+        title: "Anúncio excluído",
+        description: "O anúncio foi removido permanentemente.",
+        variant: "destructive",
+      });
+    } catch (error: any) {
+      console.error('Erro ao excluir anúncio:', error);
+      toast({
+        title: "Erro ao excluir anúncio",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <Loader2Icon className="h-10 w-10 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Carregando anúncios...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 pb-8">
@@ -306,7 +324,7 @@ const CarsList = () => {
                         <Badge variant="outline" className="text-amber-500 border-amber-500">Pendente</Badge>
                       )}
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">{car.createdAt}</TableCell>
+                    <TableCell className="hidden md:table-cell">{new Date(car.created_at).toLocaleDateString('pt-BR')}</TableCell>
                     <TableCell className="hidden md:table-cell">{car.views}</TableCell>
                     <TableCell className="hidden md:table-cell">{car.contacts}</TableCell>
                     <TableCell className="text-right">
@@ -371,4 +389,4 @@ const CarsList = () => {
   );
 };
 
-export default CarsList; 
+export default CarsList;
