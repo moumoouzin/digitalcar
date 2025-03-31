@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -67,6 +68,7 @@ const CarsList = () => {
   const fetchCars = async () => {
     try {
       setIsLoading(true);
+      console.log("Carregando anúncios...");
       
       const { data, error } = await supabase
         .from('car_ads')
@@ -78,7 +80,17 @@ const CarsList = () => {
         .order('created_at', { ascending: false });
         
       if (error) {
+        console.error("Erro ao buscar anúncios:", error);
         throw error;
+      }
+
+      console.log("Dados recebidos do Supabase:", data);
+      
+      if (!data || data.length === 0) {
+        console.log("Nenhum anúncio encontrado");
+        setCars([]);
+        setIsLoading(false);
+        return;
       }
 
       const formattedCars = data.map(car => {
@@ -89,10 +101,11 @@ const CarsList = () => {
           ...car,
           price: car.price,
           features: car.car_features?.map((f) => f.feature_id) || [],
-          images: [primaryImage || firstImage].filter(Boolean)
+          images: [primaryImage || firstImage].filter(Boolean) as string[]
         };
       });
       
+      console.log("Anúncios formatados:", formattedCars);
       setCars(formattedCars);
     } catch (error: any) {
       console.error('Erro ao carregar anúncios:', error);

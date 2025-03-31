@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +22,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 
-// Schema de validação para o formulário
 const carFormSchema = z.object({
   title: z.string().min(5, "O título precisa ter pelo menos 5 caracteres"),
   description: z.string().min(20, "A descrição precisa ter pelo menos 20 caracteres"),
@@ -38,7 +36,6 @@ const carFormSchema = z.object({
 
 type CarFormValues = z.infer<typeof carFormSchema>;
 
-// Lista de marcas e modelos para o dropdown
 const carBrands = [
   { name: "Toyota", models: ["Corolla", "Yaris", "Hilux", "SW4", "RAV4"] },
   { name: "Honda", models: ["Civic", "City", "Fit", "HR-V", "CR-V"] },
@@ -52,7 +49,6 @@ const carBrands = [
   { name: "Renault", models: ["Kwid", "Sandero", "Logan", "Duster", "Captur"] },
 ];
 
-// Features/extras que podem ser selecionados
 const carFeatures = [
   { id: "air-conditioning", label: "Ar-condicionado" },
   { id: "power-steering", label: "Direção Hidráulica" },
@@ -72,7 +68,6 @@ const carFeatures = [
   { id: "cruise-control", label: "Piloto Automático" },
 ];
 
-// Anos para o dropdown
 const generateYears = () => {
   const currentYear = new Date().getFullYear();
   const years = [];
@@ -92,7 +87,6 @@ const CreateCar = () => {
   const [activeTab, setActiveTab] = useState("info");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Inicializar o formulário com validação Zod
   const form = useForm<CarFormValues>({
     resolver: zodResolver(carFormSchema),
     defaultValues: {
@@ -108,7 +102,6 @@ const CreateCar = () => {
     },
   });
 
-  // Função para lidar com upload de imagens
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
@@ -124,18 +117,15 @@ const CreateCar = () => {
       const newImages = [...uploadedImages, ...files];
       setUploadedImages(newImages);
 
-      // Criar URLs para os previews
       const newImagePreviews = files.map((file) => URL.createObjectURL(file));
       setImagePreviewUrls([...imagePreviewUrls, ...newImagePreviews]);
     }
   };
 
-  // Função para remover uma imagem
   const removeImage = (index: number) => {
     const newImages = [...uploadedImages];
     const newImagePreviews = [...imagePreviewUrls];
 
-    // Revogar URL do objeto para liberar memória
     URL.revokeObjectURL(newImagePreviews[index]);
 
     newImages.splice(index, 1);
@@ -145,7 +135,6 @@ const CreateCar = () => {
     setImagePreviewUrls(newImagePreviews);
   };
 
-  // Função para alternar features selecionadas
   const toggleFeature = (featureId: string) => {
     setSelectedFeatures((current) =>
       current.includes(featureId)
@@ -154,11 +143,32 @@ const CreateCar = () => {
     );
   };
 
-  // Função para fazer upload de uma imagem para o Supabase Storage
   const uploadImageToSupabase = async (file: File, carId: string, isPrimary: boolean = false): Promise<string | null> => {
     try {
+      console.log('Iniciando upload para car_id:', carId, 'isPrimary:', isPrimary);
+      
+      const { data: buckets } = await supabase
+        .storage
+        .listBuckets();
+      
+      const bucketExists = buckets?.some(bucket => bucket.name === 'car-images');
+      
+      if (!bucketExists) {
+        console.log('Bucket car-images não existe, criando...');
+        const { error: createBucketError } = await supabase
+          .storage
+          .createBucket('car-images', { public: true });
+          
+        if (createBucketError) {
+          console.error('Erro ao criar bucket:', createBucketError);
+          throw createBucketError;
+        }
+      }
+      
       const fileExt = file.name.split('.').pop();
       const fileName = `${carId}/${uuidv4()}.${fileExt}`;
+      
+      console.log('Fazendo upload do arquivo:', fileName);
       const { data, error } = await supabase.storage
         .from('car-images')
         .upload(fileName, file);
@@ -168,16 +178,23 @@ const CreateCar = () => {
         return null;
       }
 
-      // Registrar a imagem no banco de dados
-      const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/${fileName}`;
+      console.log('Upload concluído com sucesso:', data);
       
-      await supabase
+      const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/${fileName}`;
+      console.log('URL da imagem:', imageUrl);
+      
+      const { error: insertError } = await supabase
         .from('car_images')
         .insert({
           car_id: carId,
           image_url: imageUrl,
           is_primary: isPrimary
         });
+        
+      if (insertError) {
+        console.error('Erro ao registrar imagem no banco de dados:', insertError);
+        return null;
+      }
 
       return imageUrl;
     } catch (error) {
@@ -186,13 +203,11 @@ const CreateCar = () => {
     }
   };
 
-  // Função para enviar o formulário
   const onSubmit = async (data: CarFormValues) => {
     console.log("Iniciando envio do formulário...");
     try {
       setIsSubmitting(true);
       
-      // Criar um novo objeto de anúncio com os dados do formulário
       const newCar = {
         title: data.title,
         price: parseFloat(data.price),
@@ -209,7 +224,6 @@ const CreateCar = () => {
 
       console.log("Dados do carro:", newCar);
 
-      // Inserir anúncio no Supabase
       const { data: carData, error } = await supabase
         .from('car_ads')
         .insert(newCar)
@@ -228,7 +242,6 @@ const CreateCar = () => {
       const carId = carData.id;
       console.log("Anúncio criado com ID:", carId);
 
-      // Salvar features no banco de dados
       if (selectedFeatures.length > 0) {
         const featureObjects = selectedFeatures.map(featureId => ({
           car_id: carId,
@@ -245,23 +258,23 @@ const CreateCar = () => {
         }
       }
 
-      // Fazer upload das imagens
-      console.log("Iniciando upload de", uploadedImages.length, "imagens");
-      const uploadPromises = uploadedImages.map((file, index) => 
-        uploadImageToSupabase(file, carId, index === 0) // A primeira imagem é definida como primária
-      );
+      if (uploadedImages.length > 0) {
+        const uploadPromises = uploadedImages.map((file, index) => 
+          uploadImageToSupabase(file, carId, index === 0)
+        );
 
-      await Promise.all(uploadPromises);
-      console.log("Upload de imagens concluído");
+        await Promise.all(uploadPromises);
+        console.log("Upload de imagens concluído");
+      } else {
+        console.log("Nenhuma imagem para fazer upload");
+      }
 
-      // Mostrar toast de sucesso
       toast({
         title: "Anúncio criado com sucesso!",
         description: "Seu anúncio foi enviado para aprovação.",
         variant: "default",
       });
 
-      // Redirecionar para lista de anúncios
       navigate("/admin/painel/cars");
     } catch (error: any) {
       console.error('Erro ao criar anúncio:', error);
@@ -292,7 +305,6 @@ const CreateCar = () => {
             <TabsTrigger value="photos">Fotos e Finalização</TabsTrigger>
           </TabsList>
 
-          {/* Tab 1: Informações Básicas */}
           <TabsContent value="info" className="mt-6">
             <Card>
               <CardHeader>
@@ -302,7 +314,6 @@ const CreateCar = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Título do Anúncio */}
                 <div className="space-y-2">
                   <Label htmlFor="title">Título do Anúncio</Label>
                   <Input
@@ -315,7 +326,6 @@ const CreateCar = () => {
                   )}
                 </div>
 
-                {/* Marca e Modelo */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="brand">Marca</Label>
@@ -364,7 +374,6 @@ const CreateCar = () => {
                   </div>
                 </div>
 
-                {/* Ano e Preço */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="year">Ano</Label>
@@ -398,7 +407,6 @@ const CreateCar = () => {
                   </div>
                 </div>
 
-                {/* Descrição */}
                 <div className="space-y-2">
                   <Label htmlFor="description">Descrição do Veículo</Label>
                   <Textarea
@@ -412,7 +420,6 @@ const CreateCar = () => {
                   )}
                 </div>
 
-                {/* WhatsApp */}
                 <div className="space-y-2">
                   <Label htmlFor="whatsapp">Número de WhatsApp para Contato</Label>
                   <Input
@@ -440,7 +447,6 @@ const CreateCar = () => {
             </Card>
           </TabsContent>
 
-          {/* Tab 2: Detalhes e Opcionais */}
           <TabsContent value="details" className="mt-6">
             <Card>
               <CardHeader>
@@ -450,7 +456,6 @@ const CreateCar = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Cor, Câmbio e Quilometragem */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="color">Cor</Label>
@@ -497,7 +502,6 @@ const CreateCar = () => {
                   </div>
                 </div>
 
-                {/* Lista de Opcionais/Features */}
                 <div className="space-y-4">
                   <Label>Características e Opcionais</Label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
@@ -537,7 +541,6 @@ const CreateCar = () => {
             </Card>
           </TabsContent>
 
-          {/* Tab 3: Fotos e Finalização */}
           <TabsContent value="photos" className="mt-6">
             <Card>
               <CardHeader>
@@ -547,7 +550,6 @@ const CreateCar = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Upload de Fotos */}
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="photos">Fotos do Veículo</Label>
@@ -576,7 +578,6 @@ const CreateCar = () => {
                       </label>
                     </div>
 
-                    {/* Preview de imagens */}
                     {imagePreviewUrls.length > 0 && (
                       <div className="mt-4">
                         <p className="text-sm font-medium mb-2">Imagens selecionadas ({imagePreviewUrls.length}/10):</p>
@@ -603,7 +604,6 @@ const CreateCar = () => {
                   </div>
                 </div>
 
-                {/* Aviso de Revisão */}
                 <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md">
                   <p className="text-sm text-yellow-800">
                     <strong>Atenção:</strong> Revise todas as informações antes de publicar o anúncio.

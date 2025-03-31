@@ -10,3 +10,19 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+// Inicializar o bucket do storage se ele não existir
+(async () => {
+  try {
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const bucketExists = buckets?.some(bucket => bucket.name === 'car-images');
+    
+    if (!bucketExists) {
+      console.log('Inicializando bucket car-images...');
+      await supabase.storage.createBucket('car-images', { public: true });
+      console.log('Bucket car-images criado com sucesso!');
+    }
+  } catch (error) {
+    console.error('Erro ao verificar/criar bucket de imagens:', error);
+  }
+})();
