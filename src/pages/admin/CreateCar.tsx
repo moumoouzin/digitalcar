@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,10 +21,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
-import { Database } from "@/integrations/supabase/types";
-
-// Defina a URL do Supabase
-const SUPABASE_URL = "https://jqrwvfmbocfpspomwddq.supabase.co";
 
 // Schema de validação para o formulário
 const carFormSchema = z.object({
@@ -173,7 +168,7 @@ const CreateCar = () => {
       }
 
       // Registrar a imagem no banco de dados
-      const imageUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/car-images/${fileName}`;
+      const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/${fileName}`;
       
       await supabase
         .from('car_images')
@@ -192,6 +187,7 @@ const CreateCar = () => {
 
   // Função para enviar o formulário
   const onSubmit = async (data: CarFormValues) => {
+    console.log("Iniciando envio do formulário...");
     try {
       setIsSubmitting(true);
       
@@ -210,6 +206,8 @@ const CreateCar = () => {
         status: "pending", 
       };
 
+      console.log("Dados do carro:", newCar);
+
       // Inserir anúncio no Supabase
       const { data: carData, error } = await supabase
         .from('car_ads')
@@ -218,10 +216,16 @@ const CreateCar = () => {
         .single();
 
       if (error) {
+        console.error("Erro ao inserir anúncio:", error);
         throw error;
       }
 
+      if (!carData) {
+        throw new Error("Não foi possível obter o ID do anúncio criado");
+      }
+
       const carId = carData.id;
+      console.log("Anúncio criado com ID:", carId);
 
       // Salvar features no banco de dados
       if (selectedFeatures.length > 0) {
@@ -230,6 +234,7 @@ const CreateCar = () => {
           feature_id: featureId
         }));
 
+        console.log("Salvando features:", featureObjects);
         const { error: featuresError } = await supabase
           .from('car_features')
           .insert(featureObjects);
@@ -240,11 +245,13 @@ const CreateCar = () => {
       }
 
       // Fazer upload das imagens
+      console.log("Iniciando upload de", uploadedImages.length, "imagens");
       const uploadPromises = uploadedImages.map((file, index) => 
         uploadImageToSupabase(file, carId, index === 0) // A primeira imagem é definida como primária
       );
 
       await Promise.all(uploadPromises);
+      console.log("Upload de imagens concluído");
 
       // Mostrar toast de sucesso
       toast({
