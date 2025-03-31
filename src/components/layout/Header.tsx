@@ -1,25 +1,24 @@
-
 import React from "react";
 
 export const Header = () => {
   return (
     <header className="bg-neutral-800 text-neutral-100 px-6 py-4">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
-        <div className="flex items-center gap-6">
+        <div className="w-1/3">
           <img
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
             alt="Digital Car Logo"
-            className="h-12"
+            className="h-28 md:h-32 logo-shadow transition-all duration-300 hover:scale-105 hover:brightness-110"
           />
-          <div className="flex flex-col">
-            <div className="text-sm font-bold">(61) 98197-4187</div>
+        </div>
+        <div className="w-2/3 flex justify-end items-center gap-6">
+          <div className="flex flex-col text-right">
+            <div className="text-base font-bold">(61) 98197-4187</div>
             <div className="text-sm font-medium">
               QSD 23 QND Condomínio Lote 04 Loja 01 - Taguatinga, Brasília - DF
             </div>
           </div>
-        </div>
-        <div className="flex items-center gap-6">
-          <div className="w-1 h-10 bg-[#FF0000]" />
+          <div className="w-1 h-10 bg-[#FF0000] mx-4" />
           <div className="flex gap-4">
             <a href="https://instagram.com" aria-label="Instagram" className="text-white hover:text-gray-300">
               <div

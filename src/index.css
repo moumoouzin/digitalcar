@@ -99,3 +99,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Estilos para a logo */
+.logo-shadow {
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.4));
+  transition: all 0.3s ease;
+}
+
+.logo-shadow:hover {
+  filter: drop-shadow(0 8px 12px rgba(255, 0, 0, 0.3));
+  transform: scale(1.05);
+}

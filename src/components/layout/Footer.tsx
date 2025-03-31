@@ -1,4 +1,3 @@
-
 import React from "react";
 
 export const Footer = () => {
@@ -8,7 +7,7 @@ export const Footer = () => {
         <img
           src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
           alt="Digital Car Logo"
-          className="h-12"
+          className="h-20 md:h-24 logo-shadow transition-all duration-300 hover:scale-105 hover:brightness-110"
         />
         <div className="text-sm font-normal">
           Digital car, todos os direitos reservados
