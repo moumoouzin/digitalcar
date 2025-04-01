@@ -129,7 +129,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_contact_count: {
+        Args: {
+          car_id: string
+        }
+        Returns: undefined
+      }
+      increment_view_count: {
+        Args: {
+          car_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
