@@ -94,8 +94,10 @@ const VehicleDetail = () => {
 
   const incrementViewCount = async (carId: string) => {
     try {
-      // Increment view count
-      await supabase.rpc('increment_view_count', { car_id: carId });
+      // Fix for TypeScript error: Using an object for the params instead of a string directly
+      await supabase.rpc('increment_view_count', {
+        car_id: carId
+      });
     } catch (error) {
       console.error('Error incrementing view count:', error);
     }
@@ -105,8 +107,10 @@ const VehicleDetail = () => {
     if (!car) return;
     
     try {
-      // Increment contact count
-      await supabase.rpc('increment_contact_count', { car_id: car.id });
+      // Fix for TypeScript error: Using an object for the params instead of a string directly
+      await supabase.rpc('increment_contact_count', {
+        car_id: car.id
+      });
     } catch (error) {
       console.error('Error incrementing contact count:', error);
     }
