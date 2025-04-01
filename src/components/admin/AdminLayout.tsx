@@ -1,7 +1,9 @@
+
 import React, { useEffect } from "react";
 import { useNavigate, Outlet, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import SidebarMenu from "../layout/SidebarMenu";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
@@ -33,7 +35,7 @@ const AdminLayout = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-neutral-800 text-white py-4 px-6">
+      <header className="bg-neutral-800 text-white py-4 px-6 z-10 relative">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-4">
             <img
@@ -51,40 +53,11 @@ const AdminLayout = () => {
 
       {/* Sidebar e conteúdo principal */}
       <div className="flex flex-1">
-        {/* Sidebar */}
-        <aside className="bg-neutral-900 text-white w-64 p-6 space-y-6">
-          <nav>
-            <ul className="space-y-4">
-              <li>
-                <Link 
-                  to="/admin/painel/dashboard" 
-                  className="block py-2 px-4 hover:bg-neutral-800 rounded transition-colors"
-                >
-                  Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/admin/painel/car/create" 
-                  className="block py-2 px-4 hover:bg-neutral-800 rounded transition-colors"
-                >
-                  Criar Anúncio
-                </Link>
-              </li>
-              <li>
-                <Link 
-                  to="/admin/painel/cars" 
-                  className="block py-2 px-4 hover:bg-neutral-800 rounded transition-colors"
-                >
-                  Gerenciar Anúncios
-                </Link>
-              </li>
-            </ul>
-          </nav>
-        </aside>
+        {/* SidebarMenu para navegação rápida */}
+        <SidebarMenu />
 
-        {/* Conteúdo principal */}
-        <main className="flex-1 p-6 bg-gray-100">
+        {/* Conteúdo principal - ajustado para considerar o menu lateral */}
+        <main className="flex-1 p-6 bg-gray-100 md:ml-64">
           <Outlet />
         </main>
       </div>
@@ -92,4 +65,4 @@ const AdminLayout = () => {
   );
 };
 
-export default AdminLayout; 
+export default AdminLayout;
