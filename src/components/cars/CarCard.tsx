@@ -1,5 +1,6 @@
 
 import React from "react";
+import { Link } from "react-router-dom";
 
 interface CarCardProps {
   image: string;
@@ -7,6 +8,7 @@ interface CarCardProps {
   features: string[];
   price?: string;
   compact?: boolean;
+  carId?: string;
 }
 
 export const CarCard = ({
@@ -15,6 +17,7 @@ export const CarCard = ({
   features,
   price,
   compact = false,
+  carId,
 }: CarCardProps) => {
   const buttonClasses = compact
     ? "bg-[#9F1717] text-white text-xs font-bold mt-3 px-4 py-1 rounded-full"
@@ -56,7 +59,13 @@ export const CarCard = ({
             </div>
           ))}
         </div>
-        <button className={buttonClasses}>SAIBA MAIS</button>
+        {carId ? (
+          <Link to={`/veiculo/${carId}`}>
+            <button className={buttonClasses}>SAIBA MAIS</button>
+          </Link>
+        ) : (
+          <button className={buttonClasses}>SAIBA MAIS</button>
+        )}
       </div>
     </div>
   );
