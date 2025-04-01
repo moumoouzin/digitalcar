@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -12,7 +13,7 @@ export const Navigation = () => {
           <div className="hidden md:flex justify-center w-full">
             <ul className="flex space-x-12">
               <li className="text-sm font-semibold hover:text-white/80">
-                <Link to="/">Veículos</Link>
+                <Link to="/veiculos">Veículos</Link>
               </li>
               <li className="text-sm font-semibold hover:text-white/80">
                 <Link to="/">Sobre Nós</Link>
@@ -73,7 +74,7 @@ export const Navigation = () => {
           <div className="md:hidden pt-4 pb-2 mt-3 border-t border-white/20">
             <ul className="space-y-3">
               <li className="text-sm font-semibold hover:text-white/80 py-1">
-                <Link to="/" onClick={() => setIsMenuOpen(false)}>Veículos</Link>
+                <Link to="/veiculos" onClick={() => setIsMenuOpen(false)}>Veículos</Link>
               </li>
               <li className="text-sm font-semibold hover:text-white/80 py-1">
                 <Link to="/" onClick={() => setIsMenuOpen(false)}>Sobre Nós</Link>
