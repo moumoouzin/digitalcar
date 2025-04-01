@@ -51,7 +51,11 @@ const Vehicles = () => {
       // Fetch cars with pagination
       const { data: carAds, error } = await supabase
         .from('car_ads')
-        .select('*')
+        .select(`
+          *,
+          car_images(*),
+          car_features(feature_id)
+        `)
         .eq('status', 'active')
         .range((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage - 1)
         .order('created_at', { ascending: false });
@@ -60,35 +64,36 @@ const Vehicles = () => {
         throw error;
       }
 
-      // Fetch primary images for each car
-      const carsWithImages = await Promise.all(
-        carAds.map(async (car) => {
-          const { data: images } = await supabase
-            .from('car_images')
-            .select('image_url')
-            .eq('car_id', car.id)
-            .eq('is_primary', true)
-            .limit(1);
+      console.log("Carregando anúncios...");
+      console.log("Dados recebidos do Supabase:", carAds);
 
-          // Fetch features for this car
-          const { data: featuresData } = await supabase
-            .from('car_features')
-            .select('feature_id')
-            .eq('car_id', car.id);
+      // Format cars with their images and features
+      const carsWithImagesAndFeatures = carAds.map(car => {
+        // Extract features
+        const features = car.car_features 
+          ? car.car_features.map(feature => feature.feature_id)
+          : [];
+        
+        // Extract images
+        const images = car.car_images && car.car_images.length > 0
+          ? car.car_images.map(img => img.image_url)
+          : [];
+        
+        // Find primary image or use the first one
+        const primaryImage = car.car_images && car.car_images.length > 0
+          ? car.car_images.find(img => img.is_primary)?.image_url || car.car_images[0]?.image_url
+          : undefined;
+        
+        return {
+          ...car,
+          features,
+          images,
+          image: primaryImage
+        };
+      });
 
-          const features = featuresData 
-            ? featuresData.map(feature => feature.feature_id)
-            : [];
-
-          return {
-            ...car,
-            image: images && images.length > 0 ? images[0].image_url : undefined,
-            features,
-          };
-        })
-      );
-
-      setCars(carsWithImages);
+      console.log("Anúncios formatados:", carsWithImagesAndFeatures);
+      setCars(carsWithImagesAndFeatures);
     } catch (error) {
       console.error('Error fetching cars:', error);
       toast({

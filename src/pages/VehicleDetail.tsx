@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,10 +41,14 @@ const VehicleDetail = () => {
     try {
       setLoading(true);
       
-      // Fetch car details
+      // Fetch car details with related images and features in a single query
       const { data: carData, error } = await supabase
         .from('car_ads')
-        .select('*')
+        .select(`
+          *,
+          car_images(*),
+          car_features(feature_id)
+        `)
         .eq('id', carId)
         .eq('status', 'active')
         .single();
@@ -54,25 +57,14 @@ const VehicleDetail = () => {
         throw error;
       }
 
-      // Fetch all images for this car
-      const { data: imagesData } = await supabase
-        .from('car_images')
-        .select('image_url')
-        .eq('car_id', carId)
-        .order('is_primary', { ascending: false });
-
-      // Fetch features for this car
-      const { data: featuresData } = await supabase
-        .from('car_features')
-        .select('feature_id')
-        .eq('car_id', carId);
-
-      const images = imagesData 
-        ? imagesData.map(img => img.image_url) 
+      // Extract features from the nested data
+      const features = carData.car_features 
+        ? carData.car_features.map(feature => feature.feature_id)
         : [];
       
-      const features = featuresData 
-        ? featuresData.map(feature => feature.feature_id)
+      // Extract images from the nested data
+      const images = carData.car_images && carData.car_images.length > 0
+        ? carData.car_images.map(img => img.image_url)
         : [];
 
       setCar({
