@@ -8,6 +8,7 @@ export interface CarCardProps {
   price: string;
   features: string[];
   compact?: boolean;
+  carId?: string;
 }
 
 export const CarCard = ({
@@ -17,7 +18,10 @@ export const CarCard = ({
   price,
   features,
   compact = false,
+  carId,
 }: CarCardProps) => {
+  const vehicleId = id || carId;
+  
   return (
     <div className={`overflow-hidden bg-white rounded-lg shadow-lg ${compact ? "h-full" : ""}`}>
       <div className={`${compact ? "h-32" : "h-48"} relative`}>
@@ -38,7 +42,7 @@ export const CarCard = ({
           ))}
         </div>
         <Link
-          to={id ? `/vehicles/${id}` : "#"}
+          to={vehicleId ? `/veiculo/${vehicleId}` : "#"}
           className="block w-full py-2 text-center text-white bg-[#FF0000] rounded-md hover:bg-red-700"
         >
           Ver Detalhes

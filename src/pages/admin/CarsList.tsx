@@ -138,7 +138,7 @@ const CarsList = () => {
   };
 
   const handleView = (id: string) => {
-    window.open(`/car/${id}`, "_blank");
+    window.open(`/veiculo/${id}`, "_blank");
   };
 
   const handleApprove = async (id: string) => {

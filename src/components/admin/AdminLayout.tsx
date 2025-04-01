@@ -1,4 +1,3 @@
-
 import React, { useEffect } from "react";
 import { useNavigate, Outlet, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -38,11 +37,13 @@ const AdminLayout = () => {
       <header className="bg-neutral-800 text-white py-4 px-6 z-10 relative">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <img
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
-              alt="Digital Car Logo"
-              className="h-12 logo-shadow"
-            />
+            <Link to="/">
+              <img
+                src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
+                alt="Digital Car Logo"
+                className="h-12 logo-shadow cursor-pointer hover:scale-105 transition-transform"
+              />
+            </Link>
             <h1 className="text-xl font-bold">Painel Administrativo</h1>
           </div>
           <Button variant="ghost" onClick={handleLogout} className="text-white hover:text-red-300">

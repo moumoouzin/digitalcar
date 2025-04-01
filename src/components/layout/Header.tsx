@@ -1,15 +1,18 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 export const Header = () => {
   return (
     <header className="bg-neutral-800 text-neutral-100 px-6 py-4">
       <div className="max-w-7xl mx-auto flex justify-between items-center">
         <div className="w-1/3">
-          <img
-            src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
-            alt="Digital Car Logo"
-            className="h-28 md:h-32 logo-shadow transition-all duration-300 hover:scale-105 hover:brightness-110"
-          />
+          <Link to="/">
+            <img
+              src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
+              alt="Digital Car Logo"
+              className="h-28 md:h-32 logo-shadow transition-all duration-300 hover:scale-105 hover:brightness-110 cursor-pointer"
+            />
+          </Link>
         </div>
         <div className="w-2/3 flex justify-end items-center gap-6">
           <div className="flex flex-col text-right">

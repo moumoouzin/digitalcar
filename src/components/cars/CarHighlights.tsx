@@ -75,7 +75,7 @@ export function CarHighlights() {
         </div>
         
         <div className="mt-12 text-center">
-          <Link to="/vehicles">
+          <Link to="/veiculos">
             <Button variant="outline" size="lg">
               Ver mais veículos
             </Button>
@@ -115,7 +115,7 @@ export function CarHighlights() {
       </div>
       
       <div className="mt-12 text-center">
-        <Link to="/vehicles">
+        <Link to="/veiculos">
           <Button variant="outline" size="lg">
             Ver mais veículos
           </Button>
