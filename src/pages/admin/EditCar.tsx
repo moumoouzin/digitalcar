@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
-import { v4 as uuidv4 } from "uuid";
+import { Loader2Icon } from "lucide-react";
 
 const carFormSchema = z.object({
   title: z.string().min(5, "O título precisa ter pelo menos 5 caracteres"),
@@ -77,15 +77,18 @@ const generateYears = () => {
   return years;
 };
 
-const CreateCar = () => {
+const EditCar = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
+  const [existingImages, setExistingImages] = useState<Array<{id: string, url: string}>>([]);
   const [activeTab, setActiveTab] = useState("info");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Novos estados para campos personalizados
   const [customBrand, setCustomBrand] = useState("");
@@ -112,13 +115,137 @@ const CreateCar = () => {
     },
   });
 
+  // Carregar dados do anúncio existente
+  useEffect(() => {
+    if (id) {
+      fetchCarDetails();
+    }
+  }, [id]);
+
+  const fetchCarDetails = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Buscar os detalhes do anúncio
+      const { data: carData, error: carError } = await supabase
+        .from('car_ads')
+        .select('*')
+        .eq('id', id)
+        .single();
+        
+      if (carError) {
+        throw carError;
+      }
+      
+      if (!carData) {
+        toast({
+          title: "Anúncio não encontrado",
+          description: "Não foi possível encontrar o anúncio solicitado.",
+          variant: "destructive",
+        });
+        navigate("/admin/painel/cars");
+        return;
+      }
+      
+      // Preencher o formulário com os dados existentes
+      form.setValue("title", carData.title);
+      form.setValue("description", carData.description);
+      form.setValue("price", carData.price.toString());
+      form.setValue("color", carData.color);
+      form.setValue("mileage", carData.mileage);
+      form.setValue("whatsapp", carData.whatsapp);
+      
+      // Verificar se a marca é personalizada ou padrão
+      const brandExists = carBrands.some(brand => brand.name === carData.brand);
+      if (brandExists) {
+        setSelectedBrand(carData.brand);
+        setIsCustomBrand(false);
+      } else {
+        setIsCustomBrand(true);
+        setCustomBrand(carData.brand);
+      }
+      
+      // Verificar se o modelo é personalizado ou padrão
+      const modelExists = carData.brand && carBrands.find(
+        brand => brand.name === carData.brand
+      )?.models.includes(carData.model);
+      
+      if (modelExists) {
+        form.setValue("model", carData.model);
+        setIsCustomModel(false);
+      } else {
+        setIsCustomModel(true);
+        setCustomModel(carData.model);
+        form.setValue("model", carData.model);
+      }
+      
+      // Verificar se o ano é personalizado ou padrão
+      const yearExists = generateYears().includes(carData.year);
+      if (yearExists) {
+        form.setValue("year", carData.year);
+        setIsCustomYear(false);
+      } else {
+        setIsCustomYear(true);
+        setCustomYear(carData.year);
+        form.setValue("year", carData.year);
+      }
+      
+      // Verificar se o câmbio é personalizado ou padrão
+      const standardTransmissions = ["manual", "automatic", "cvt", "semi-automatic"];
+      if (standardTransmissions.includes(carData.transmission)) {
+        form.setValue("transmission", carData.transmission);
+        setIsCustomTransmission(false);
+      } else {
+        setIsCustomTransmission(true);
+        setCustomTransmission(carData.transmission);
+        form.setValue("transmission", carData.transmission);
+      }
+      
+      // Buscar features do anúncio
+      const { data: featuresData, error: featuresError } = await supabase
+        .from('car_features')
+        .select('feature_id')
+        .eq('car_id', id);
+        
+      if (!featuresError && featuresData) {
+        const featureIds = featuresData.map(f => f.feature_id);
+        setSelectedFeatures(featureIds);
+      }
+      
+      // Buscar imagens do anúncio
+      const { data: imagesData, error: imagesError } = await supabase
+        .from('car_images')
+        .select('id, image_url')
+        .eq('car_id', id);
+        
+      if (!imagesError && imagesData) {
+        const images = imagesData.map(img => ({
+          id: img.id,
+          url: img.image_url
+        }));
+        setExistingImages(images);
+      }
+      
+    } catch (error: any) {
+      console.error('Erro ao carregar dados do anúncio:', error);
+      toast({
+        title: "Erro ao carregar anúncio",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive",
+      });
+      navigate("/admin/painel/cars");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-      if (files.length + uploadedImages.length > 10) {
+      if (files.length + uploadedImages.length + existingImages.length > 10) {
         toast({
           title: "Limite de imagens excedido",
-          description: "Você pode fazer upload de no máximo 10 imagens.",
+          description: "Você pode ter no máximo 10 imagens por anúncio.",
           variant: "destructive",
         });
         return;
@@ -145,6 +272,36 @@ const CreateCar = () => {
     setImagePreviewUrls(newImagePreviews);
   };
 
+  const removeExistingImage = async (imageId: string, index: number) => {
+    try {
+      const { error } = await supabase
+        .from('car_images')
+        .delete()
+        .eq('id', imageId);
+        
+      if (error) {
+        throw error;
+      }
+      
+      const newExistingImages = [...existingImages];
+      newExistingImages.splice(index, 1);
+      setExistingImages(newExistingImages);
+      
+      toast({
+        title: "Imagem removida",
+        description: "A imagem foi removida com sucesso.",
+        variant: "default",
+      });
+    } catch (error: any) {
+      console.error('Erro ao remover imagem:', error);
+      toast({
+        title: "Erro ao remover imagem",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const toggleFeature = (featureId: string) => {
     setSelectedFeatures((current) =>
       current.includes(featureId)
@@ -155,30 +312,9 @@ const CreateCar = () => {
 
   const uploadImageToSupabase = async (file: File, carId: string, isPrimary: boolean = false): Promise<string | null> => {
     try {
-      console.log('Iniciando upload para car_id:', carId, 'isPrimary:', isPrimary);
-      
-      const { data: buckets } = await supabase
-        .storage
-        .listBuckets();
-      
-      const bucketExists = buckets?.some(bucket => bucket.name === 'car-images');
-      
-      if (!bucketExists) {
-        console.log('Bucket car-images não existe, criando...');
-        const { error: createBucketError } = await supabase
-          .storage
-          .createBucket('car-images', { public: true });
-          
-        if (createBucketError) {
-          console.error('Erro ao criar bucket:', createBucketError);
-          throw createBucketError;
-        }
-      }
-      
       const fileExt = file.name.split('.').pop();
-      const fileName = `${carId}/${uuidv4()}.${fileExt}`;
+      const fileName = `${carId}/${Date.now()}.${fileExt}`;
       
-      console.log('Fazendo upload do arquivo:', fileName);
       const { data, error } = await supabase.storage
         .from('car-images')
         .upload(fileName, file);
@@ -187,11 +323,8 @@ const CreateCar = () => {
         console.error('Erro ao fazer upload da imagem:', error);
         return null;
       }
-
-      console.log('Upload concluído com sucesso:', data);
       
       const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/${fileName}`;
-      console.log('URL da imagem:', imageUrl);
       
       const { error: insertError } = await supabase
         .from('car_images')
@@ -214,11 +347,12 @@ const CreateCar = () => {
   };
 
   const onSubmit = async (data: CarFormValues) => {
-    console.log("Iniciando envio do formulário...");
+    if (!id) return;
+    
     try {
       setIsSubmitting(true);
       
-      const newCar = {
+      const updatedCar = {
         title: data.title,
         price: parseFloat(data.price),
         brand: isCustomBrand ? customBrand : selectedBrand,
@@ -229,36 +363,31 @@ const CreateCar = () => {
         mileage: data.mileage,
         description: data.description,
         whatsapp: data.whatsapp,
-        status: "pending", 
       };
 
-      console.log("Dados do carro:", newCar);
-
-      const { data: carData, error } = await supabase
+      const { error } = await supabase
         .from('car_ads')
-        .insert(newCar)
-        .select('id')
-        .single();
+        .update(updatedCar)
+        .eq('id', id);
 
       if (error) {
-        console.error("Erro ao inserir anúncio:", error);
         throw error;
       }
 
-      if (!carData) {
-        throw new Error("Não foi possível obter o ID do anúncio criado");
-      }
-
-      const carId = carData.id;
-      console.log("Anúncio criado com ID:", carId);
-
+      // Atualizar features
+      // Primeiro, removemos todas as features existentes
+      await supabase
+        .from('car_features')
+        .delete()
+        .eq('car_id', id);
+        
+      // Depois, inserimos as novas features selecionadas
       if (selectedFeatures.length > 0) {
         const featureObjects = selectedFeatures.map(featureId => ({
-          car_id: carId,
+          car_id: id,
           feature_id: featureId
         }));
 
-        console.log("Salvando features:", featureObjects);
         const { error: featuresError } = await supabase
           .from('car_features')
           .insert(featureObjects);
@@ -268,28 +397,26 @@ const CreateCar = () => {
         }
       }
 
+      // Upload de novas imagens, se houver
       if (uploadedImages.length > 0) {
-        const uploadPromises = uploadedImages.map((file, index) => 
-          uploadImageToSupabase(file, carId, index === 0)
+        const uploadPromises = uploadedImages.map(file => 
+          uploadImageToSupabase(file, id)
         );
 
         await Promise.all(uploadPromises);
-        console.log("Upload de imagens concluído");
-      } else {
-        console.log("Nenhuma imagem para fazer upload");
       }
 
       toast({
-        title: "Anúncio criado com sucesso!",
-        description: "Seu anúncio foi enviado para aprovação.",
+        title: "Anúncio atualizado com sucesso!",
+        description: "As alterações foram salvas.",
         variant: "default",
       });
 
       navigate("/admin/painel/cars");
     } catch (error: any) {
-      console.error('Erro ao criar anúncio:', error);
+      console.error('Erro ao atualizar anúncio:', error);
       toast({
-        title: "Erro ao criar anúncio",
+        title: "Erro ao atualizar anúncio",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -298,12 +425,21 @@ const CreateCar = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <Loader2Icon className="h-10 w-10 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Carregando dados do anúncio...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 pb-8">
       <div>
-        <h1 className="text-3xl font-bold">Criar Novo Anúncio</h1>
+        <h1 className="text-3xl font-bold">Editar Anúncio</h1>
         <p className="text-muted-foreground mt-1">
-          Preencha o formulário abaixo para cadastrar um novo veículo.
+          Altere as informações do anúncio conforme necessário.
         </p>
       </div>
 
@@ -320,7 +456,7 @@ const CreateCar = () => {
               <CardHeader>
                 <CardTitle>Informações Básicas</CardTitle>
                 <CardDescription>
-                  Preencha as informações essenciais do veículo.
+                  Edite as informações essenciais do veículo.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -342,6 +478,7 @@ const CreateCar = () => {
                     {!isCustomBrand ? (
                       <>
                         <Select
+                          value={selectedBrand}
                           onValueChange={(value) => {
                             if (value === "outro") {
                               setIsCustomBrand(true);
@@ -396,6 +533,7 @@ const CreateCar = () => {
                     {!isCustomModel ? (
                       <>
                         <Select
+                          value={form.getValues("model")}
                           onValueChange={(value) => {
                             if (value === "outro") {
                               setIsCustomModel(true);
@@ -458,6 +596,7 @@ const CreateCar = () => {
                     {!isCustomYear ? (
                       <>
                         <Select 
+                          value={form.getValues("year")}
                           onValueChange={(value) => {
                             if (value === "outro") {
                               setIsCustomYear(true);
@@ -567,7 +706,7 @@ const CreateCar = () => {
               <CardHeader>
                 <CardTitle>Detalhes e Opcionais</CardTitle>
                 <CardDescription>
-                  Adicione mais detalhes e selecione os opcionais do veículo.
+                  Edite os detalhes e opcionais do veículo.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -589,6 +728,7 @@ const CreateCar = () => {
                     {!isCustomTransmission ? (
                       <>
                         <Select 
+                          value={form.getValues("transmission")}
                           onValueChange={(value) => {
                             if (value === "outro") {
                               setIsCustomTransmission(true);
@@ -698,13 +838,38 @@ const CreateCar = () => {
               <CardHeader>
                 <CardTitle>Fotos e Finalização</CardTitle>
                 <CardDescription>
-                  Adicione fotos do veículo e revise as informações antes de publicar.
+                  Edite as fotos do veículo e revise as informações antes de atualizar.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="photos">Fotos do Veículo</Label>
+                    
+                    {existingImages.length > 0 && (
+                      <div className="mb-6">
+                        <p className="text-sm font-medium mb-2">Imagens existentes ({existingImages.length}):</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                          {existingImages.map((img, index) => (
+                            <div key={img.id} className="relative group">
+                              <img
+                                src={img.url}
+                                alt={`Imagem ${index + 1}`}
+                                className="h-24 w-full object-cover rounded-md"
+                              />
+                              <button
+                                type="button"
+                                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                                onClick={() => removeExistingImage(img.id, index)}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="flex items-center justify-center w-full">
                       <label
                         htmlFor="photo-upload"
@@ -712,10 +877,10 @@ const CreateCar = () => {
                       >
                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
                           <p className="mb-2 text-sm text-gray-500">
-                            <span className="font-semibold">Clique para fazer upload</span> ou arraste e solte
+                            <span className="font-semibold">Clique para adicionar mais fotos</span> ou arraste e solte
                           </p>
                           <p className="text-xs text-gray-500">
-                            PNG, JPG ou JPEG (máx. 10 imagens)
+                            PNG, JPG ou JPEG (máx. 10 imagens no total)
                           </p>
                         </div>
                         <input
@@ -725,20 +890,20 @@ const CreateCar = () => {
                           multiple
                           className="hidden"
                           onChange={handleImageUpload}
-                          disabled={uploadedImages.length >= 10}
+                          disabled={uploadedImages.length + existingImages.length >= 10}
                         />
                       </label>
                     </div>
 
                     {imagePreviewUrls.length > 0 && (
                       <div className="mt-4">
-                        <p className="text-sm font-medium mb-2">Imagens selecionadas ({imagePreviewUrls.length}/10):</p>
+                        <p className="text-sm font-medium mb-2">Novas imagens ({imagePreviewUrls.length}):</p>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                           {imagePreviewUrls.map((url, index) => (
                             <div key={index} className="relative group">
                               <img
                                 src={url}
-                                alt={`Preview ${index + 1}`}
+                                alt={`Nova imagem ${index + 1}`}
                                 className="h-24 w-full object-cover rounded-md"
                               />
                               <button
@@ -758,8 +923,8 @@ const CreateCar = () => {
 
                 <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md">
                   <p className="text-sm text-yellow-800">
-                    <strong>Atenção:</strong> Revise todas as informações antes de publicar o anúncio.
-                    Após a publicação, o anúncio passará por uma análise antes de ficar disponível no site.
+                    <strong>Atenção:</strong> Revise todas as informações antes de atualizar o anúncio.
+                    Após a atualização, as alterações serão imediatamente visíveis no site.
                   </p>
                 </div>
               </CardContent>
@@ -772,7 +937,7 @@ const CreateCar = () => {
                   Voltar
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Enviando..." : "Publicar Anúncio"}
+                  {isSubmitting ? "Atualizando..." : "Atualizar Anúncio"}
                 </Button>
               </CardFooter>
             </Card>
@@ -783,4 +948,4 @@ const CreateCar = () => {
   );
 };
 
-export default CreateCar;
+export default EditCar; 

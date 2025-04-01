@@ -17,6 +17,7 @@ export type Database = {
           created_at: string
           description: string
           id: string
+          is_featured: boolean | null
           mileage: string
           model: string
           price: number
@@ -35,6 +36,7 @@ export type Database = {
           created_at?: string
           description: string
           id?: string
+          is_featured?: boolean | null
           mileage: string
           model: string
           price: number
@@ -53,6 +55,7 @@ export type Database = {
           created_at?: string
           description?: string
           id?: string
+          is_featured?: boolean | null
           mileage?: string
           model?: string
           price?: number

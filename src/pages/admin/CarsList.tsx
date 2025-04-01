@@ -1,23 +1,12 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -26,20 +15,47 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
-  PencilIcon, 
-  TrashIcon, 
-  MoreVerticalIcon, 
-  EyeIcon, 
-  CheckCircleIcon, 
-  XCircleIcon,
-  Loader2Icon 
+  CheckCircle, 
+  XCircle,
+  Loader2,
+  Car,
+  Edit,
+  Eye,
+  MessageSquare,
+  MoreVertical,
+  Trash,
+  X,
+  FileText,
+  Check,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, refreshSchemaCache } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
+import { statusColor } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { CarCardSkeleton } from "@/components/cars/CarCardSkeleton";
 
 type CarAd = Database['public']['Tables']['car_ads']['Row'] & {
   car_images?: Array<{
@@ -60,40 +76,39 @@ const CarsList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "pending">("all");
   const [isLoading, setIsLoading] = useState(true);
+  const [carToDelete, setCarToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     fetchCars();
   }, []);
 
   const fetchCars = async () => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      console.log("Carregando anúncios...");
-      
-      const { data, error } = await supabase
-        .from('car_ads')
+      let query = supabase
+        .from("car_ads")
         .select(`
           *,
-          car_images (image_url, is_primary),
-          car_features (feature_id)
+          car_images (*),
+          car_features (*)
         `)
-        .order('created_at', { ascending: false });
-        
-      if (error) {
-        console.error("Erro ao buscar anúncios:", error);
-        throw error;
+        .order("created_at", { ascending: false });
+
+      if (filterStatus !== "all") {
+        query = query.eq("status", filterStatus);
       }
 
-      console.log("Dados recebidos do Supabase:", data);
-      
-      if (!data || data.length === 0) {
-        console.log("Nenhum anúncio encontrado");
-        setCars([]);
-        setIsLoading(false);
-        return;
+      if (searchTerm) {
+        query = query.or(
+          `title.ilike.%${searchTerm}%,brand.ilike.%${searchTerm}%,model.ilike.%${searchTerm}%`
+        );
       }
 
-      const formattedCars = data.map(car => {
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      const formattedCars = data.map((car) => {
         const primaryImage = car.car_images?.find((img) => img.is_primary)?.image_url;
         const firstImage = car.car_images?.length > 0 ? car.car_images[0].image_url : null;
         
@@ -105,31 +120,18 @@ const CarsList = () => {
         };
       });
       
-      console.log("Anúncios formatados:", formattedCars);
       setCars(formattedCars);
+      setIsLoading(false);
     } catch (error: any) {
-      console.error('Erro ao carregar anúncios:', error);
+      console.error("Error fetching cars:", error);
       toast({
         title: "Erro ao carregar anúncios",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };
-
-  const filteredCars = cars.filter((car) => {
-    const matchesSearch = 
-      car.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      car.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      car.model.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = 
-      filterStatus === "all" || car.status === filterStatus;
-    
-    return matchesSearch && matchesStatus;
-  });
 
   const handleEdit = (id: string) => {
     navigate(`/admin/painel/car/edit/${id}`);
@@ -225,10 +227,96 @@ const CarsList = () => {
     }
   };
 
+  const handleToggleFeatured = async (id: string, currentValue: boolean) => {
+    try {
+      console.log('Tentando atualizar anúncio:', id, 'Valor atual:', currentValue);
+      
+      // Primeiro, tenta atualizar o cache de esquema
+      await refreshSchemaCache();
+      
+      // Utiliza uma abordagem mais direta
+      const newValue = currentValue === undefined ? true : !currentValue;
+      
+      // Tenta atualizar o campo diretamente usando um método mais básico
+      try {
+        const response = await fetch(`https://jqrwvfmbocfpspomwddq.supabase.co/rest/v1/car_ads?id=eq.${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxcndwZm1ib2NmcHNwb213ZGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDM2MTUxNDUsImV4cCI6MjAxOTE5MTE0NX0.GZKKvOj7wKvwZ0QbKbzZIAUQUzioswXJOZE7r6bU3Ug',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ 
+            is_featured: newValue 
+          }),
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Erro no servidor: ${response.status}`);
+        }
+        
+        // Deu certo! Atualiza o estado
+        setCars(
+          cars.map((car) =>
+            car.id === id ? { ...car, is_featured: newValue } : car
+          )
+        );
+        
+        toast({
+          title: !currentValue 
+            ? "Anúncio marcado como destaque" 
+            : "Anúncio removido dos destaques",
+          description: !currentValue
+            ? "O anúncio agora aparecerá na seção de destaques na página inicial"
+            : "O anúncio não aparecerá mais na seção de destaques",
+          variant: "default",
+        });
+        
+      } catch (fetchError) {
+        console.error("Erro na requisição direta:", fetchError);
+        
+        // Tenta com o método normal do Supabase como fallback
+        const { error } = await supabase
+          .from('car_ads')
+          .update({ is_featured: newValue })
+          .eq('id', id);
+        
+        if (error) {
+          console.error("Erro do Supabase:", error);
+          throw new Error(error.message || "Erro desconhecido");
+        }
+        
+        // Se chegou até aqui, foi bem-sucedido com o método fallback
+        setCars(
+          cars.map((car) =>
+            car.id === id ? { ...car, is_featured: newValue } : car
+          )
+        );
+        
+        toast({
+          title: !currentValue 
+            ? "Anúncio marcado como destaque" 
+            : "Anúncio removido dos destaques",
+          description: !currentValue
+            ? "O anúncio agora aparecerá na seção de destaques na página inicial"
+            : "O anúncio não aparecerá mais na seção de destaques",
+          variant: "default",
+        });
+      }
+    } catch (error: any) {
+      console.error("Erro ao atualizar destaque:", error);
+      toast({
+        title: "Erro ao atualizar destaque",
+        description: error.message || "Ocorreu um erro ao tentar atualizar o destaque. Tente novamente.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
-        <Loader2Icon className="h-10 w-10 animate-spin text-primary mb-4" />
+        <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
         <p className="text-muted-foreground">Carregando anúncios...</p>
       </div>
     );
@@ -255,7 +343,7 @@ const CarsList = () => {
         <CardHeader>
           <CardTitle>Anúncios</CardTitle>
           <CardDescription>
-            Total de {filteredCars.length} anúncios encontrados.
+            Total de {cars.length} anúncios encontrados.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -307,7 +395,7 @@ const CarsList = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCars.map((car) => (
+                {cars.map((car) => (
                   <TableRow key={car.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -341,7 +429,7 @@ const CarsList = () => {
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon">
-                            <MoreVerticalIcon className="h-4 w-4" />
+                            <MoreVertical className="h-4 w-4" />
                             <span className="sr-only">Abrir menu</span>
                           </Button>
                         </DropdownMenuTrigger>
@@ -350,32 +438,45 @@ const CarsList = () => {
                           <DropdownMenuSeparator />
                           {car.status === "active" && (
                             <DropdownMenuItem onClick={() => handleView(car.id)}>
-                              <EyeIcon className="mr-2 h-4 w-4" />
+                              <Eye className="mr-2 h-4 w-4" />
                               <span>Visualizar</span>
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem onClick={() => handleEdit(car.id)}>
-                            <PencilIcon className="mr-2 h-4 w-4" />
+                            <Edit className="mr-2 h-4 w-4" />
                             <span>Editar</span>
                           </DropdownMenuItem>
                           {car.status === "pending" && (
                             <>
                               <DropdownMenuItem onClick={() => handleApprove(car.id)}>
-                                <CheckCircleIcon className="mr-2 h-4 w-4" />
+                                <CheckCircle className="mr-2 h-4 w-4" />
                                 <span>Aprovar</span>
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleReject(car.id)}>
-                                <XCircleIcon className="mr-2 h-4 w-4" />
+                                <XCircle className="mr-2 h-4 w-4" />
                                 <span>Rejeitar</span>
                               </DropdownMenuItem>
                             </>
                           )}
+                          <DropdownMenuItem onClick={() => handleToggleFeatured(car.id, car.is_featured)}>
+                            {car.is_featured ? (
+                              <>
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                <span>Remover dos destaques</span>
+                              </>
+                            ) : (
+                              <>
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                <span>Marcar como destaque</span>
+                              </>
+                            )}
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem 
-                            onClick={() => handleDelete(car.id)}
+                            onClick={() => setCarToDelete(car.id)}
                             className="text-red-600"
                           >
-                            <TrashIcon className="mr-2 h-4 w-4" />
+                            <Trash className="mr-2 h-4 w-4" />
                             <span>Excluir</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -383,7 +484,7 @@ const CarsList = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {filteredCars.length === 0 && (
+                {cars.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       Nenhum anúncio encontrado
@@ -395,6 +496,34 @@ const CarsList = () => {
           </div>
         </CardContent>
       </Card>
+
+      {carToDelete && (
+        <Dialog open={!!carToDelete} onOpenChange={() => setCarToDelete(null)}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Excluir Anúncio</DialogTitle>
+              <DialogDescription>
+                Tem certeza de que deseja excluir este anúncio?
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="outline">
+                  Cancelar
+                </Button>
+              </DialogClose>
+              <DialogClose asChild>
+                <Button type="button" variant="destructive" onClick={() => {
+                  handleDelete(carToDelete);
+                  setCarToDelete(null);
+                }}>
+                  Excluir
+                </Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

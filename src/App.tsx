@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +12,7 @@ import VehicleDetail from "./pages/VehicleDetail";
 import AdminLogin from "./pages/admin/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 import CreateCar from "./pages/admin/CreateCar";
+import EditCar from "./pages/admin/EditCar";
 import CarsList from "./pages/admin/CarsList";
 import AdminLayout from "./components/admin/AdminLayout";
 
@@ -37,6 +37,7 @@ const App = () => (
             <Route index element={<AdminDashboard />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="car/create" element={<CreateCar />} />
+            <Route path="car/edit/:id" element={<EditCar />} />
             <Route path="cars" element={<CarsList />} />
           </Route>
           

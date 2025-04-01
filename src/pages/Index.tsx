@@ -1,8 +1,6 @@
-
 import React from "react";
 import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
-import { FeaturedCars } from "@/components/cars/FeaturedCars";
 import { CarHighlights } from "@/components/cars/CarHighlights";
 import { AboutSection } from "@/components/about/AboutSection";
 import { Footer } from "@/components/layout/Footer";
@@ -18,7 +16,6 @@ const Index = () => {
       <Navigation />
       <main className="flex-grow">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <FeaturedCars />
           <CarHighlights />
           <AboutSection />
         </div>

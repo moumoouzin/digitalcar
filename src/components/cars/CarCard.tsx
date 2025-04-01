@@ -1,71 +1,48 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 
-interface CarCardProps {
+export interface CarCardProps {
+  id?: string;
   image: string;
   name: string;
+  price: string;
   features: string[];
-  price?: string;
   compact?: boolean;
-  carId?: string;
 }
 
 export const CarCard = ({
+  id,
   image,
   name,
-  features,
   price,
+  features,
   compact = false,
-  carId,
 }: CarCardProps) => {
-  const buttonClasses = compact
-    ? "bg-[#9F1717] text-white text-xs font-bold mt-3 px-4 py-1 rounded-full"
-    : "bg-[#9F1717] text-white text-xs font-bold mt-3 px-4 py-1 rounded-full";
-
-  const dotClasses = "w-1.5 h-1.5 bg-[#A82626] rounded-full";
-  const textClasses = "text-xs font-medium";
-
   return (
-    <div
-      className={
-        compact 
-          ? "flex-shrink-0 w-full max-w-[240px] bg-white rounded-xl shadow-sm overflow-hidden" 
-          : "bg-white p-4 rounded-xl shadow-sm"
-      }
-    >
-      <img
-        src={image}
-        alt={name}
-        className={
-          compact
-            ? "w-full h-40 object-cover rounded-t-xl"
-            : "w-full h-48 object-cover rounded-lg mb-3"
-        }
-      />
-      <div className={compact ? "p-3" : ""}>
-        <h3 className="text-lg font-bold mb-2">{name}</h3>
-        {price && (
-          <div className="text-base font-bold text-[#9F1717] mb-2">{price}</div>
-        )}
-        <div className="space-y-1.5 mb-3">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className={`flex items-center gap-2 ${textClasses}`}
-            >
-              <div className={dotClasses} />
-              <span>{feature}</span>
+    <div className={`overflow-hidden bg-white rounded-lg shadow-lg ${compact ? "h-full" : ""}`}>
+      <div className={`${compact ? "h-32" : "h-48"} relative`}>
+        <img
+          src={image || "/placeholder-car.jpg"}
+          alt={name}
+          className="object-cover w-full h-full"
+        />
+      </div>
+      <div className="p-4">
+        <h3 className="mb-2 text-lg font-semibold">{name}</h3>
+        <p className="text-xl font-bold text-[#FF0000] mb-3">{price}</p>
+        <div className="mb-4">
+          {features.slice(0, 3).map((feature, index) => (
+            <div key={index} className="mb-1 text-sm">
+              ✓ {feature}
             </div>
           ))}
         </div>
-        {carId ? (
-          <Link to={`/veiculo/${carId}`}>
-            <button className={buttonClasses}>SAIBA MAIS</button>
-          </Link>
-        ) : (
-          <button className={buttonClasses}>SAIBA MAIS</button>
-        )}
+        <Link
+          to={id ? `/vehicles/${id}` : "#"}
+          className="block w-full py-2 text-center text-white bg-[#FF0000] rounded-md hover:bg-red-700"
+        >
+          Ver Detalhes
+        </Link>
       </div>
     </div>
   );
