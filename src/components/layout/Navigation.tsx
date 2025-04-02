@@ -18,8 +18,8 @@ export const Navigation = () => {
               <li className="text-sm font-semibold hover:text-white/80">
                 <Link to="/">Sobre Nós</Link>
               </li>
-              <li className="text-sm font-medium hover:text-white/80">
-                <Link to="/">Financiamento</Link>
+              <li className="text-sm font-semibold hover:text-white/80">
+                <Link to="/financiamento">Financiamento</Link>
               </li>
               <li className="text-sm font-semibold hover:text-white/80">
                 <Link to="/">Contato</Link>
@@ -79,8 +79,8 @@ export const Navigation = () => {
               <li className="text-sm font-semibold hover:text-white/80 py-1">
                 <Link to="/" onClick={() => setIsMenuOpen(false)}>Sobre Nós</Link>
               </li>
-              <li className="text-sm font-medium hover:text-white/80 py-1">
-                <Link to="/" onClick={() => setIsMenuOpen(false)}>Financiamento</Link>
+              <li className="text-sm font-semibold hover:text-white/80 py-1">
+                <Link to="/financiamento" onClick={() => setIsMenuOpen(false)}>Financiamento</Link>
               </li>
               <li className="text-sm font-semibold hover:text-white/80 py-1">
                 <Link to="/" onClick={() => setIsMenuOpen(false)}>Contato</Link>

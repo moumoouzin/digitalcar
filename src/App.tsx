@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,6 +8,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Vehicles from "./pages/Vehicles";
 import VehicleDetail from "./pages/VehicleDetail";
+import Financing from "./pages/Financing";
 
 // Páginas de Admin
 import AdminLogin from "./pages/admin/Login";
@@ -29,6 +31,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/veiculos" element={<Vehicles />} />
           <Route path="/veiculo/:id" element={<VehicleDetail />} />
+          <Route path="/financiamento" element={<Financing />} />
           
           {/* Rotas administrativas */}
           <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
