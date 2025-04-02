@@ -27,6 +27,11 @@ const formSteps = [
 
 export const FinancingForm = () => {
   const [step, setStep] = useState(0);
+  const [documentFiles, setDocumentFiles] = useState({
+    residenceProof: null,
+    incomeProof: null,
+    driverLicense: null
+  });
   
   // Create form schema
   const formSchema = z.object({
@@ -140,14 +145,35 @@ export const FinancingForm = () => {
 
   // Form submission handler
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log("Form submitted:", data);
+    // Process form data with document files
+    const formData = {
+      ...data,
+      documents: documentFiles
+    };
+    
+    console.log("Form submitted:", formData);
     toast.success("Solicitação de financiamento enviada com sucesso!");
     form.reset();
     setStep(0);
+    setDocumentFiles({
+      residenceProof: null,
+      incomeProof: null,
+      driverLicense: null
+    });
   };
 
   // Next step handler
   const handleNext = async () => {
+    if (step === 0) {
+      // Check if all documents are uploaded for step 0
+      if (!documentFiles.residenceProof || !documentFiles.incomeProof || !documentFiles.driverLicense) {
+        toast.error("Por favor, anexe todos os documentos necessários antes de prosseguir.");
+        return;
+      }
+      setStep(step + 1);
+      return;
+    }
+    
     const fields = getFieldsByStep(step);
     const isValid = await validateFields(fields);
     
@@ -158,6 +184,11 @@ export const FinancingForm = () => {
         form.handleSubmit(onSubmit)();
       }
     }
+  };
+
+  // Update document files
+  const handleDocumentFilesChange = (files) => {
+    setDocumentFiles(files);
   };
 
   // Field validation by step
@@ -238,7 +269,11 @@ export const FinancingForm = () => {
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {renderStep()}
+          {step === 0 ? (
+            <DocumentsStep />
+          ) : (
+            renderStep()
+          )}
           
           <div className="flex justify-between pt-4 mt-8 border-t">
             <Button 
