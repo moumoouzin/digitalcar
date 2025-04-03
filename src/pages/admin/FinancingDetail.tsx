@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -6,7 +7,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Printer, Download, ChevronLeft, FileText } from 'lucide-react';
+import { Printer, Download, ChevronLeft, FileText, ExternalLink } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -62,6 +63,9 @@ interface FinancingRequest {
   account?: string;
   account_type?: string;
   
+  residence_proof?: boolean;
+  income_proof?: boolean;
+  driver_license?: boolean;
   residence_proof_url?: string;
   income_proof_url?: string;
   driver_license_url?: string;
@@ -514,7 +518,7 @@ export default function FinancingDetail() {
                     rel="noopener noreferrer"
                     className="bg-primary text-white px-3 py-1.5 rounded-md text-sm flex items-center gap-1.5"
                   >
-                    <Download size={14} />
+                    <ExternalLink size={14} />
                     Visualizar
                   </a>
                 ) : (
@@ -532,7 +536,7 @@ export default function FinancingDetail() {
                     rel="noopener noreferrer"
                     className="bg-primary text-white px-3 py-1.5 rounded-md text-sm flex items-center gap-1.5"
                   >
-                    <Download size={14} />
+                    <ExternalLink size={14} />
                     Visualizar
                   </a>
                 ) : (
@@ -550,7 +554,7 @@ export default function FinancingDetail() {
                     rel="noopener noreferrer"
                     className="bg-primary text-white px-3 py-1.5 rounded-md text-sm flex items-center gap-1.5"
                   >
-                    <Download size={14} />
+                    <ExternalLink size={14} />
                     Visualizar
                   </a>
                 ) : (

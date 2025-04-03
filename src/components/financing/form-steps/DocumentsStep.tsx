@@ -1,16 +1,67 @@
 
-import React from "react";
-import { FileText, User, Building, Upload, Check, AlertTriangle } from "lucide-react";
+import React, { useState } from "react";
+import { FileText, User, Building, Upload, Check, AlertTriangle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { v4 as uuidv4 } from "uuid";
 
 export const DocumentsStep = ({ files, onFilesChange }) => {
-  const handleFileChange = (type) => (e) => {
+  const [uploading, setUploading] = useState({
+    residenceProof: false,
+    incomeProof: false,
+    driverLicense: false
+  });
+
+  const handleFileChange = async (type) => async (e) => {
     if (e.target.files && e.target.files[0]) {
-      onFilesChange({
-        ...files,
-        [type]: e.target.files[0]
-      });
+      const file = e.target.files[0];
+      
+      // Verificar tamanho do arquivo (5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("O arquivo é muito grande. O tamanho máximo é 5MB.");
+        return;
+      }
+      
+      try {
+        // Iniciar o upload
+        setUploading(prev => ({ ...prev, [type]: true }));
+        
+        // Gerar nome único para o arquivo
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${uuidv4()}.${fileExt}`;
+        const filePath = `financing-docs/${fileName}`;
+        
+        // Upload para o Supabase Storage
+        const { data, error } = await supabase.storage
+          .from('financing-docs')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+          
+        if (error) throw error;
+        
+        // Obter a URL pública do arquivo
+        const { data: urlData } = supabase.storage
+          .from('financing-docs')
+          .getPublicUrl(filePath);
+          
+        // Atualizar o estado com o arquivo e a URL
+        onFilesChange({
+          ...files,
+          [type]: file,
+          [`${type}Url`]: urlData.publicUrl
+        });
+        
+        toast.success("Documento enviado com sucesso!");
+      } catch (error) {
+        console.error(`Erro ao fazer upload do arquivo ${type}:`, error);
+        toast.error(`Erro ao enviar o documento: ${error.message || 'Tente novamente'}`);
+      } finally {
+        setUploading(prev => ({ ...prev, [type]: false }));
+      }
     }
   };
   
@@ -26,6 +77,8 @@ export const DocumentsStep = ({ files, onFilesChange }) => {
   };
   
   const DocumentCard = ({ icon: Icon, title, fileType, file, description }) => {
+    const isUploading = uploading[fileType];
+    
     return (
       <div className="bg-gray-100 p-4 rounded-lg flex flex-col h-full">
         <div className="flex flex-col items-center justify-center mb-4">
@@ -56,8 +109,10 @@ export const DocumentsStep = ({ files, onFilesChange }) => {
               className="w-full justify-center"
               onClick={() => onFilesChange({
                 ...files,
-                [fileType]: null
+                [fileType]: null,
+                [`${fileType}Url`]: null
               })}
+              disabled={isUploading}
             >
               Remover e anexar outro
             </Button>
@@ -73,15 +128,28 @@ export const DocumentsStep = ({ files, onFilesChange }) => {
               <p className="text-xs text-gray-600 mb-3">{description}</p>
             )}
             
-            <label className="relative cursor-pointer flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm bg-primary text-white hover:bg-primary/90 w-full">
+            <label className={cn(
+              "relative cursor-pointer flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm bg-primary text-white hover:bg-primary/90 w-full",
+              isUploading && "opacity-70 cursor-not-allowed"
+            )}>
               <input 
                 type="file" 
                 className="sr-only" 
                 onChange={handleFileChange(fileType)}
                 accept=".pdf,.jpg,.jpeg,.png"
+                disabled={isUploading}
               />
-              <Upload className="h-4 w-4" />
-              <span>Anexar arquivo</span>
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Enviando...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4" />
+                  <span>Anexar arquivo</span>
+                </>
+              )}
             </label>
           </div>
         )}

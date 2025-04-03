@@ -6,6 +6,7 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { sendFinancingEmail } from "@/services/emailService";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   VehicleInfoStep, 
   PersonalInfoStep, 
@@ -31,7 +32,10 @@ export const FinancingForm = () => {
   const [documentFiles, setDocumentFiles] = useState({
     residenceProof: null,
     incomeProof: null,
-    driverLicense: null
+    driverLicense: null,
+    residenceProofUrl: null,
+    incomeProofUrl: null,
+    driverLicenseUrl: null
   });
   
   // Create form schema
@@ -207,17 +211,97 @@ export const FinancingForm = () => {
         // Informações adicionais
         additionalInfo: data.additionalInfo,
         
-        // Documentos enviados (flags)
+        // Documentos enviados (flags e URLs)
         residenceProof: !!documentFiles.residenceProof,
         incomeProof: !!documentFiles.incomeProof,
-        driverLicense: !!documentFiles.driverLicense
+        driverLicense: !!documentFiles.driverLicense,
+        
+        // URLs dos documentos
+        residence_proof_url: documentFiles.residenceProofUrl || null,
+        income_proof_url: documentFiles.incomeProofUrl || null,
+        driver_license_url: documentFiles.driverLicenseUrl || null
       };
       
-      // Salvar dados no Supabase
+      // Inserir os dados no Supabase
+      const { data: insertedData, error } = await supabase
+        .from('financing_requests')
+        .insert([
+          {
+            // Dados do veículo
+            vehicle_brand: data.vehicleBrand,
+            vehicle_model: data.vehicleModel,
+            vehicle_color: data.vehicleColor,
+            vehicle_year: data.vehicleYear,
+            vehicle_value: data.vehicleValue,
+            down_payment: data.downPayment,
+            installments: data.installments,
+            
+            // Dados pessoais
+            name: data.name,
+            rg: data.rg,
+            cpf: data.cpf,
+            birth_date: data.birthDate,
+            mother_name: data.motherName,
+            father_name: data.fatherName,
+            nationality: data.nationality,
+            marital_status: data.maritalStatus,
+            gender: data.gender,
+            email: data.email,
+            phone: data.phone,
+            
+            // Endereço
+            address: data.address,
+            address_complement: data.addressComplement,
+            zip_code: data.zipCode,
+            neighborhood: data.neighborhood,
+            city: data.city,
+            state: data.state,
+            residence_type: data.residenceType,
+            
+            // Dados profissionais
+            company: data.company,
+            cnpj: data.cnpj,
+            role: data.role,
+            income: data.income,
+            work_address: data.workAddress,
+            work_number: data.workNumber,
+            work_complement: data.workComplement,
+            work_zip_code: data.workZipCode,
+            work_neighborhood: data.workNeighborhood,
+            work_city: data.workCity,
+            work_state: data.workState,
+            work_phone: data.workPhone,
+            time_at_work: data.timeAtWork,
+            
+            // Dados bancários
+            bank: data.bank,
+            agency: data.agency,
+            account: data.account,
+            account_type: data.accountType,
+            
+            // Informações adicionais
+            additional_info: data.additionalInfo,
+            
+            // Documentos enviados (flags)
+            residence_proof: !!documentFiles.residenceProof,
+            income_proof: !!documentFiles.incomeProof,
+            driver_license: !!documentFiles.driverLicense,
+            
+            // URLs dos documentos
+            residence_proof_url: documentFiles.residenceProofUrl,
+            income_proof_url: documentFiles.incomeProofUrl,
+            driver_license_url: documentFiles.driverLicenseUrl
+          }
+        ])
+        .select();
+      
+      if (error) throw error;
+      
+      // Enviar email de notificação
       const message = await sendFinancingEmail(formData);
       
       // Mostrar mensagem de sucesso
-      toast.success(message);
+      toast.success("Solicitação de financiamento enviada com sucesso!");
       
       // Resetar formulário
       form.reset();
@@ -225,7 +309,10 @@ export const FinancingForm = () => {
       setDocumentFiles({
         residenceProof: null,
         incomeProof: null,
-        driverLicense: null
+        driverLicense: null,
+        residenceProofUrl: null,
+        incomeProofUrl: null,
+        driverLicenseUrl: null
       });
     } catch (error: any) {
       console.error("Erro no envio do formulário:", error);
