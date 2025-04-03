@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,13 +11,11 @@ import { useReactToPrint } from 'react-to-print';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
-// Interface completa para solicitação de financiamento
 interface FinancingRequest {
   id: string;
   created_at: string;
   status?: string;
   
-  // Veículo
   vehicle_brand?: string;
   vehicle_model?: string;
   vehicle_year?: string;
@@ -27,7 +24,6 @@ interface FinancingRequest {
   down_payment?: string;
   installments?: string;
   
-  // Dados pessoais
   name?: string;
   rg?: string;
   cpf?: string;
@@ -47,7 +43,6 @@ interface FinancingRequest {
   state?: string;
   residence_type?: string;
   
-  // Dados profissionais
   company?: string;
   cnpj?: string;
   role?: string;
@@ -62,13 +57,11 @@ interface FinancingRequest {
   work_phone?: string;
   time_at_work?: string;
   
-  // Dados bancários
   bank?: string;
   agency?: string;
   account?: string;
   account_type?: string;
   
-  // Documentos
   residence_proof_url?: string;
   income_proof_url?: string;
   driver_license_url?: string;
@@ -140,14 +133,12 @@ export default function FinancingDetail() {
     }
   };
   
-  // Fix: Updated the useReactToPrint hook with the correct property name
   const handlePrint = useReactToPrint({
     documentTitle: `Financiamento-${request?.name || 'Cliente'}-${request?.vehicle_brand || ''}-${request?.vehicle_model || ''}`,
     onAfterPrint: () => toast({
       title: 'Impressão',
       description: 'Documento enviado para impressão',
     }),
-    // Using contentRef instead of content
     contentRef: printRef,
   });
   
@@ -169,25 +160,21 @@ export default function FinancingDetail() {
       
       const imgData = canvas.toDataURL('image/png');
       
-      // A4 dimensions in mm (210 x 297)
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: 'a4',
       });
       
-      // Calculate dimensions to maintain aspect ratio
-      const imgWidth = 210; // A4 width
-      const pageHeight = 297; // A4 height
+      const imgWidth = 210;
+      const pageHeight = 297;
       const imgHeight = canvas.height * imgWidth / canvas.width;
       let heightLeft = imgHeight;
       let position = 0;
       
-      // Add first page
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
       
-      // Add subsequent pages if content is too long
       while (heightLeft > 0) {
         position = heightLeft - imgHeight;
         pdf.addPage();
@@ -195,7 +182,6 @@ export default function FinancingDetail() {
         heightLeft -= pageHeight;
       }
       
-      // Save the PDF
       pdf.save(`Financiamento-${request?.name || 'Cliente'}-${request?.vehicle_brand || ''}-${request?.vehicle_model || ''}.pdf`);
       
       toast({
@@ -257,7 +243,6 @@ export default function FinancingDetail() {
           <Button
             variant="outline"
             className="flex items-center gap-2"
-            // Fix: Fixed the button onClick handler
             onClick={() => handlePrint()}
           >
             <Printer size={16} />
