@@ -140,13 +140,15 @@ export default function FinancingDetail() {
     }
   };
   
+  // Fix: Updated the useReactToPrint hook with the correct property name
   const handlePrint = useReactToPrint({
-    content: () => printRef.current,
     documentTitle: `Financiamento-${request?.name || 'Cliente'}-${request?.vehicle_brand || ''}-${request?.vehicle_model || ''}`,
     onAfterPrint: () => toast({
       title: 'Impressão',
       description: 'Documento enviado para impressão',
     }),
+    // Using contentRef instead of content
+    contentRef: printRef,
   });
   
   const handleDownloadPDF = async () => {
@@ -255,7 +257,8 @@ export default function FinancingDetail() {
           <Button
             variant="outline"
             className="flex items-center gap-2"
-            onClick={handlePrint}
+            // Fix: Fixed the button onClick handler
+            onClick={() => handlePrint()}
           >
             <Printer size={16} />
             <span>Imprimir</span>
