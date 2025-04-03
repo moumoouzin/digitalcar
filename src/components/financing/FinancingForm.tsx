@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
@@ -6,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { sendFinancingEmail } from "@/services/emailService";
 import { 
   VehicleInfoStep, 
   PersonalInfoStep, 
@@ -27,6 +27,7 @@ const formSteps = [
 
 export const FinancingForm = () => {
   const [step, setStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [documentFiles, setDocumentFiles] = useState({
     residenceProof: null,
     incomeProof: null,
@@ -144,22 +145,95 @@ export const FinancingForm = () => {
   });
 
   // Form submission handler
-  const onSubmit = (data: z.infer<typeof formSchema>) => {
-    // Process form data with document files
-    const formData = {
-      ...data,
-      documents: documentFiles
-    };
+  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    // Definir carregamento como true
+    setIsSubmitting(true);
     
-    console.log("Form submitted:", formData);
-    toast.success("Solicitação de financiamento enviada com sucesso!");
-    form.reset();
-    setStep(0);
-    setDocumentFiles({
-      residenceProof: null,
-      incomeProof: null,
-      driverLicense: null
-    });
+    try {
+      // Transformar os dados do formulário para o formato do serviço
+      const formData = {
+        // Dados do veículo 
+        vehicleBrand: data.vehicleBrand,
+        vehicleModel: data.vehicleModel,
+        vehicleColor: data.vehicleColor,
+        vehicleYear: data.vehicleYear,
+        vehicleValue: data.vehicleValue,
+        downPayment: data.downPayment,
+        installments: data.installments,
+        
+        // Dados pessoais
+        name: data.name,
+        rg: data.rg,
+        cpf: data.cpf,
+        birthDate: data.birthDate,
+        motherName: data.motherName,
+        fatherName: data.fatherName,
+        nationality: data.nationality,
+        maritalStatus: data.maritalStatus,
+        gender: data.gender,
+        email: data.email,
+        phone: data.phone,
+        
+        // Endereço
+        address: data.address,
+        addressComplement: data.addressComplement,
+        zipCode: data.zipCode,
+        neighborhood: data.neighborhood,
+        city: data.city,
+        state: data.state,
+        residenceType: data.residenceType,
+        
+        // Dados profissionais
+        company: data.company,
+        cnpj: data.cnpj,
+        role: data.role,
+        income: data.income,
+        workAddress: data.workAddress,
+        workNumber: data.workNumber,
+        workComplement: data.workComplement,
+        workZipCode: data.workZipCode,
+        workNeighborhood: data.workNeighborhood,
+        workCity: data.workCity,
+        workState: data.workState,
+        workPhone: data.workPhone,
+        timeAtWork: data.timeAtWork,
+        
+        // Dados bancários
+        bank: data.bank,
+        agency: data.agency,
+        account: data.account,
+        accountType: data.accountType,
+        
+        // Informações adicionais
+        additionalInfo: data.additionalInfo,
+        
+        // Documentos enviados (flags)
+        residenceProof: !!documentFiles.residenceProof,
+        incomeProof: !!documentFiles.incomeProof,
+        driverLicense: !!documentFiles.driverLicense
+      };
+      
+      // Salvar dados no Supabase
+      const message = await sendFinancingEmail(formData);
+      
+      // Mostrar mensagem de sucesso
+      toast.success(message);
+      
+      // Resetar formulário
+      form.reset();
+      setStep(0);
+      setDocumentFiles({
+        residenceProof: null,
+        incomeProof: null,
+        driverLicense: null
+      });
+    } catch (error: any) {
+      console.error("Erro no envio do formulário:", error);
+      toast.error(error.message || "Ocorreu um erro ao processar sua solicitação. Por favor, tente novamente.");
+    } finally {
+      // Definir carregamento como false, independente do resultado
+      setIsSubmitting(false);
+    }
   };
 
   // Next step handler
@@ -221,7 +295,7 @@ export const FinancingForm = () => {
   const renderStep = () => {
     switch (step) {
       case 0:
-        return <DocumentsStep />;
+        return <DocumentsStep files={documentFiles} onFilesChange={handleDocumentFilesChange} />;
       case 1:
         return <VehicleInfoStep form={form} />;
       case 2:
@@ -270,7 +344,7 @@ export const FinancingForm = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {step === 0 ? (
-            <DocumentsStep />
+            <DocumentsStep files={documentFiles} onFilesChange={handleDocumentFilesChange} />
           ) : (
             renderStep()
           )}
@@ -287,8 +361,11 @@ export const FinancingForm = () => {
             <Button 
               type="button" 
               onClick={handleNext}
+              disabled={isSubmitting}
             >
-              {step === formSteps.length - 1 ? "Enviar" : "Próximo"}
+              {step === formSteps.length - 1 ? (
+                isSubmitting ? "Enviando..." : "Enviar"
+              ) : "Próximo"}
             </Button>
           </div>
         </form>

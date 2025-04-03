@@ -1,12 +1,16 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { InfoIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import SidebarMenu from "../layout/SidebarMenu";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [showDatabaseAlert, setShowDatabaseAlert] = useState(false);
 
   // Verificar autenticação ao carregar o componente
   useEffect(() => {
@@ -20,6 +24,27 @@ const AdminLayout = () => {
       navigate("/admin/login");
     }
   }, [navigate, toast]);
+
+  // Verificar se a tabela financing_requests existe
+  useEffect(() => {
+    const checkFinancingTable = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('financing_requests')
+          .select('id')
+          .limit(1);
+        
+        if (error && error.code === '42P01') {
+          setShowDatabaseAlert(true);
+        }
+      } catch (error) {
+        console.error('Erro ao verificar tabela:', error);
+        setShowDatabaseAlert(true);
+      }
+    };
+    
+    checkFinancingTable();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("adminAuth");
@@ -59,6 +84,16 @@ const AdminLayout = () => {
 
         {/* Conteúdo principal - ajustado para considerar o menu lateral */}
         <main className="flex-1 p-6 bg-gray-100 md:ml-64">
+          {showDatabaseAlert && (
+            <Alert variant="destructive" className="mb-6">
+              <InfoIcon className="h-4 w-4" />
+              <AlertTitle>Problema com o banco de dados</AlertTitle>
+              <AlertDescription>
+                A tabela de solicitações de financiamento ainda não foi criada no banco de dados do Supabase.
+                Por favor, execute o script SQL <code>create_financing_table.sql</code> no console do Supabase.
+              </AlertDescription>
+            </Alert>
+          )}
           <Outlet />
         </main>
       </div>

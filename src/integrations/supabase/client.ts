@@ -31,6 +31,26 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   }
 })();
 
+// Verificar se a tabela financing_requests existe
+(async () => {
+  try {
+    // Verificar se a tabela 'financing_requests' existe
+    const { data, error } = await supabase
+      .from('financing_requests')
+      .select('id')
+      .limit(1);
+    
+    if (error) {
+      console.warn('A tabela financing_requests pode não existir:', error);
+      console.log('Execute o script SQL para criar a tabela (create_financing_table.sql)');
+    } else {
+      console.log('Tabela financing_requests verificada com sucesso!');
+    }
+  } catch (error) {
+    console.error('Erro ao verificar tabela financing_requests:', error);
+  }
+})();
+
 // Função para limpar o cache de esquema do Supabase
 export const refreshSchemaCache = async () => {
   try {

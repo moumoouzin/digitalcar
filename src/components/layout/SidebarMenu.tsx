@@ -1,7 +1,6 @@
-
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Car, Info, FileQuestion, Phone, User, Menu } from "lucide-react";
+import { Home, Car, Info, FileQuestion, Phone, User, Menu, LayoutDashboard, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -17,7 +16,8 @@ type MenuItem = {
   icon: React.ElementType;
 };
 
-const menuItems: MenuItem[] = [
+// Menu items for the main site
+const siteMenuItems: MenuItem[] = [
   { name: "Início", path: "/", icon: Home },
   { name: "Veículos", path: "/veiculos", icon: Car },
   { name: "Sobre Nós", path: "/", icon: Info },
@@ -26,12 +26,29 @@ const menuItems: MenuItem[] = [
   { name: "Admin", path: "/admin/login", icon: User }
 ];
 
+// Menu items for the admin panel
+const adminMenuItems: MenuItem[] = [
+  { name: "Dashboard", path: "/admin/painel/dashboard", icon: LayoutDashboard },
+  { name: "Veículos", path: "/admin/painel/cars", icon: Car },
+  { name: "Financiamentos", path: "/admin/painel/financiamentos", icon: FileText },
+];
+
 const SidebarMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
 
+  // Check if the current location is in the admin panel
+  const isAdminPanel = location.pathname.includes('/admin/painel');
+  
+  // Use the appropriate menu items based on the current location
+  const menuItems = isAdminPanel ? adminMenuItems : siteMenuItems;
+
   const isActive = (path: string) => {
-    return location.pathname === path;
+    if (path === '/') {
+      return location.pathname === path;
+    }
+    return location.pathname === path || 
+      (path.includes('/admin/painel/') && location.pathname.startsWith(path));
   };
 
   const renderMenuItems = () => (
@@ -53,6 +70,22 @@ const SidebarMenu = () => {
           </Link>
         </li>
       ))}
+      
+      {isAdminPanel && (
+        <li>
+          <div className="text-xs uppercase text-neutral-500 font-semibold mt-6 mb-2 px-3">
+            Navegação
+          </div>
+          <Link 
+            to="/"
+            className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors w-full hover:bg-neutral-800/50 text-neutral-300 hover:text-white"
+            onClick={() => setIsOpen(false)}
+          >
+            <Home size={18} />
+            <span>Voltar ao Site</span>
+          </Link>
+        </li>
+      )}
     </ul>
   );
 
@@ -67,7 +100,7 @@ const SidebarMenu = () => {
         />
         <h1 className="text-lg font-bold">Digital Car</h1>
       </div>
-      <div className="p-4 flex-1">
+      <div className="p-4 flex-1 overflow-y-auto">
         {renderMenuItems()}
       </div>
     </div>

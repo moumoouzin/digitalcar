@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,7 +15,12 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import CreateCar from "./pages/admin/CreateCar";
 import EditCar from "./pages/admin/EditCar";
 import CarsList from "./pages/admin/CarsList";
+import FinancingRequests from "./pages/admin/FinancingRequests";
 import AdminLayout from "./components/admin/AdminLayout";
+
+// Tratamento de erros
+import ErrorBoundary from "./components/ErrorBoundary";
+import { Suspense } from "react";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +46,16 @@ const App = () => (
             <Route path="car/create" element={<CreateCar />} />
             <Route path="car/edit/:id" element={<EditCar />} />
             <Route path="cars" element={<CarsList />} />
+            <Route 
+              path="financiamentos" 
+              element={
+                <Suspense fallback={<div>Carregando...</div>}>
+                  <ErrorBoundary fallback={<div className="p-4 text-center">Erro ao carregar a página de financiamentos. Verifique se o banco de dados está configurado corretamente.</div>}>
+                    <FinancingRequests />
+                  </ErrorBoundary>
+                </Suspense>
+              } 
+            />
           </Route>
           
           {/* Rota 404 */}

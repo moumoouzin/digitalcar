@@ -127,6 +127,195 @@ export type Database = {
           },
         ]
       }
+      financing_requests: {
+        Row: {
+          id: string
+          created_at: string
+          status: string
+          // Dados do veículo
+          vehicle_brand: string
+          vehicle_model: string
+          vehicle_color: string
+          vehicle_year: string
+          vehicle_value: string
+          down_payment: string | null
+          installments: string | null
+          
+          // Dados pessoais
+          name: string
+          rg: string
+          cpf: string
+          birth_date: string
+          mother_name: string
+          father_name: string | null
+          nationality: string
+          marital_status: string
+          gender: string
+          email: string
+          phone: string
+          address: string
+          address_complement: string | null
+          zip_code: string
+          neighborhood: string
+          city: string
+          state: string
+          residence_type: string
+          
+          // Dados profissionais
+          company: string
+          cnpj: string | null
+          role: string
+          income: string
+          work_address: string
+          work_number: string
+          work_complement: string | null
+          work_zip_code: string
+          work_neighborhood: string
+          work_city: string
+          work_state: string
+          work_phone: string
+          time_at_work: string
+          
+          // Dados bancários
+          bank: string
+          agency: string
+          account: string
+          account_type: string
+          
+          // Informações adicionais
+          additional_info: string | null
+          
+          // Documentos (apenas nomes)
+          residence_proof: boolean
+          income_proof: boolean
+          driver_license: boolean
+        }
+        Insert: {
+          id?: string
+          created_at?: string
+          status?: string
+          // Dados do veículo
+          vehicle_brand: string
+          vehicle_model: string
+          vehicle_color: string
+          vehicle_year: string
+          vehicle_value: string
+          down_payment?: string | null
+          installments?: string | null
+          
+          // Dados pessoais
+          name: string
+          rg: string
+          cpf: string
+          birth_date: string
+          mother_name: string
+          father_name?: string | null
+          nationality: string
+          marital_status: string
+          gender: string
+          email: string
+          phone: string
+          address: string
+          address_complement?: string | null
+          zip_code: string
+          neighborhood: string
+          city: string
+          state: string
+          residence_type: string
+          
+          // Dados profissionais
+          company: string
+          cnpj?: string | null
+          role: string
+          income: string
+          work_address: string
+          work_number: string
+          work_complement?: string | null
+          work_zip_code: string
+          work_neighborhood: string
+          work_city: string
+          work_state: string
+          work_phone: string
+          time_at_work: string
+          
+          // Dados bancários
+          bank: string
+          agency: string
+          account: string
+          account_type: string
+          
+          // Informações adicionais
+          additional_info?: string | null
+          
+          // Documentos (apenas nomes)
+          residence_proof: boolean
+          income_proof: boolean
+          driver_license: boolean
+        }
+        Update: {
+          id?: string
+          created_at?: string
+          status?: string
+          // Dados do veículo
+          vehicle_brand?: string
+          vehicle_model?: string
+          vehicle_color?: string
+          vehicle_year?: string
+          vehicle_value?: string
+          down_payment?: string | null
+          installments?: string | null
+          
+          // Dados pessoais
+          name?: string
+          rg?: string
+          cpf?: string
+          birth_date?: string
+          mother_name?: string
+          father_name?: string | null
+          nationality?: string
+          marital_status?: string
+          gender?: string
+          email?: string
+          phone?: string
+          address?: string
+          address_complement?: string | null
+          zip_code?: string
+          neighborhood?: string
+          city?: string
+          state?: string
+          residence_type?: string
+          
+          // Dados profissionais
+          company?: string
+          cnpj?: string | null
+          role?: string
+          income?: string
+          work_address?: string
+          work_number?: string
+          work_complement?: string | null
+          work_zip_code?: string
+          work_neighborhood?: string
+          work_city?: string
+          work_state?: string
+          work_phone?: string
+          time_at_work?: string
+          
+          // Dados bancários
+          bank?: string
+          agency?: string
+          account?: string
+          account_type?: string
+          
+          // Informações adicionais
+          additional_info?: string | null
+          
+          // Documentos (apenas nomes)
+          residence_proof?: boolean
+          income_proof?: boolean
+          driver_license?: boolean
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -1,22 +1,14 @@
-
-import React, { useState } from "react";
+import React from "react";
 import { FileText, User, Building, Upload } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export const DocumentsStep = () => {
-  const [files, setFiles] = useState({
-    residenceProof: null,
-    incomeProof: null,
-    driverLicense: null
-  });
-  
+export const DocumentsStep = ({ files, onFilesChange }) => {
   const handleFileChange = (type) => (e) => {
     if (e.target.files && e.target.files[0]) {
-      setFiles(prev => ({
-        ...prev,
+      onFilesChange({
+        ...files,
         [type]: e.target.files[0]
-      }));
+      });
     }
   };
   
