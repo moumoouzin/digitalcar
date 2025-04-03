@@ -1,3 +1,4 @@
+
 /**
  * Serviço responsável por salvar as solicitações de financiamento no Supabase
  */
@@ -64,6 +65,11 @@ export interface FinancingFormData {
   residenceProof?: boolean;
   incomeProof?: boolean;
   driverLicense?: boolean;
+  
+  // URLs para os documentos (opcional)
+  residenceProofUrl?: string;
+  incomeProofUrl?: string;
+  driverLicenseUrl?: string;
 }
 
 /**
@@ -130,6 +136,11 @@ export async function sendFinancingEmail(formData: FinancingFormData): Promise<s
         // Informações adicionais
         additional_info: formData.additionalInfo || null,
         
+        // URLs para os documentos
+        residence_proof_url: formData.residenceProofUrl || null,
+        income_proof_url: formData.incomeProofUrl || null,
+        driver_license_url: formData.driverLicenseUrl || null,
+        
         // Flags de documentos
         residence_proof: formData.residenceProof || false,
         income_proof: formData.incomeProof || false,
@@ -149,4 +160,4 @@ export async function sendFinancingEmail(formData: FinancingFormData): Promise<s
     console.error('Erro no processo de envio:', error);
     throw new Error(`Falha ao enviar formulário: ${error.message}`);
   }
-} 
+}
