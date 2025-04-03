@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { v4 as uuidv4 } from "uuid";
+import { createFinancingDocsBucket } from "@/integrations/supabase/createFinancingDocsBucket";
 
 export const DocumentsStep = ({ files, onFilesChange }) => {
   const [uploading, setUploading] = useState({
@@ -14,7 +15,16 @@ export const DocumentsStep = ({ files, onFilesChange }) => {
     driverLicense: false
   });
 
-  const handleFileChange = async (type) => async (e) => {
+  // Initialize the bucket when component loads
+  React.useEffect(() => {
+    const initBucket = async () => {
+      await createFinancingDocsBucket();
+    };
+    initBucket();
+  }, []);
+
+  // Fix: Changed from returning a promise to a regular event handler
+  const handleFileChange = (type) => (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       
@@ -24,44 +34,50 @@ export const DocumentsStep = ({ files, onFilesChange }) => {
         return;
       }
       
-      try {
-        // Iniciar o upload
-        setUploading(prev => ({ ...prev, [type]: true }));
-        
-        // Gerar nome único para o arquivo
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${uuidv4()}.${fileExt}`;
-        const filePath = `financing-docs/${fileName}`;
-        
-        // Upload para o Supabase Storage
-        const { data, error } = await supabase.storage
-          .from('financing-docs')
-          .upload(filePath, file, {
-            cacheControl: '3600',
-            upsert: false
-          });
-          
-        if (error) throw error;
-        
-        // Obter a URL pública do arquivo
-        const { data: urlData } = supabase.storage
-          .from('financing-docs')
-          .getPublicUrl(filePath);
-          
-        // Atualizar o estado com o arquivo e a URL
-        onFilesChange({
-          ...files,
-          [type]: file,
-          [`${type}Url`]: urlData.publicUrl
+      // Start the upload process
+      uploadFile(type, file);
+    }
+  };
+  
+  // Extracted upload logic to a separate function
+  const uploadFile = async (type, file) => {
+    try {
+      // Iniciar o upload
+      setUploading(prev => ({ ...prev, [type]: true }));
+      
+      // Gerar nome único para o arquivo
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExt}`;
+      const filePath = `${fileName}`;
+      
+      // Upload para o Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('financing-docs')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
         });
         
-        toast.success("Documento enviado com sucesso!");
-      } catch (error) {
-        console.error(`Erro ao fazer upload do arquivo ${type}:`, error);
-        toast.error(`Erro ao enviar o documento: ${error.message || 'Tente novamente'}`);
-      } finally {
-        setUploading(prev => ({ ...prev, [type]: false }));
-      }
+      if (error) throw error;
+      
+      // Obter a URL pública do arquivo
+      const { data: urlData } = supabase.storage
+        .from('financing-docs')
+        .getPublicUrl(filePath);
+        
+      // Atualizar o estado com o arquivo e a URL
+      onFilesChange({
+        ...files,
+        [type]: file,
+        [`${type}Url`]: urlData.publicUrl
+      });
+      
+      toast.success("Documento enviado com sucesso!");
+    } catch (error) {
+      console.error(`Erro ao fazer upload do arquivo ${type}:`, error);
+      toast.error(`Erro ao enviar o documento: ${error.message || 'Tente novamente'}`);
+    } finally {
+      setUploading(prev => ({ ...prev, [type]: false }));
     }
   };
   
