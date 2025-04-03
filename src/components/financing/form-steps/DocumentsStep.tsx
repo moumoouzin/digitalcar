@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { FileText, User, Building, Upload, Check, AlertTriangle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,15 +14,15 @@ export const DocumentsStep = ({ files, onFilesChange }) => {
     driverLicense: false
   });
 
-  // Initialize the bucket when component loads
+  // Verificar o bucket quando o componente carrega
   React.useEffect(() => {
-    const initBucket = async () => {
+    const checkBucket = async () => {
       await createFinancingDocsBucket();
     };
-    initBucket();
+    checkBucket();
   }, []);
 
-  // Fix: Changed from returning a promise to a regular event handler
+  // Manipulador do evento de seleção de arquivo
   const handleFileChange = (type) => (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
@@ -34,12 +33,12 @@ export const DocumentsStep = ({ files, onFilesChange }) => {
         return;
       }
       
-      // Start the upload process
+      // Iniciar o processo de upload
       uploadFile(type, file);
     }
   };
   
-  // Extracted upload logic to a separate function
+  // Função de upload de arquivo
   const uploadFile = async (type, file) => {
     try {
       // Iniciar o upload
@@ -48,22 +47,24 @@ export const DocumentsStep = ({ files, onFilesChange }) => {
       // Gerar nome único para o arquivo
       const fileExt = file.name.split('.').pop();
       const fileName = `${uuidv4()}.${fileExt}`;
-      const filePath = `${fileName}`;
       
       // Upload para o Supabase Storage
       const { data, error } = await supabase.storage
         .from('financing-docs')
-        .upload(filePath, file, {
+        .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false
         });
         
-      if (error) throw error;
+      if (error) {
+        console.error('Erro no upload:', error);
+        throw error;
+      }
       
       // Obter a URL pública do arquivo
       const { data: urlData } = supabase.storage
         .from('financing-docs')
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
         
       // Atualizar o estado com o arquivo e a URL
       onFilesChange({

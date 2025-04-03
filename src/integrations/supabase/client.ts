@@ -16,31 +16,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   }
 });
 
-// Inicializar os buckets do storage se eles não existirem
-(async () => {
-  try {
-    const { data: buckets } = await supabase.storage.listBuckets();
-    
-    // Verificar/criar o bucket car-images
-    const carImagesBucketExists = buckets?.some(bucket => bucket.name === 'car-images');
-    if (!carImagesBucketExists) {
-      console.log('Inicializando bucket car-images...');
-      await supabase.storage.createBucket('car-images', { public: true });
-      console.log('Bucket car-images criado com sucesso!');
-    }
-    
-    // Verificar/criar o bucket financing-docs
-    const financingDocsBucketExists = buckets?.some(bucket => bucket.name === 'financing-docs');
-    if (!financingDocsBucketExists) {
-      console.log('Inicializando bucket financing-docs...');
-      await supabase.storage.createBucket('financing-docs', { public: true });
-      console.log('Bucket financing-docs criado com sucesso!');
-    }
-  } catch (error) {
-    console.error('Erro ao verificar/criar buckets de armazenamento:', error);
-  }
-})();
-
 // Verificar se a tabela financing_requests existe
 (async () => {
   try {
