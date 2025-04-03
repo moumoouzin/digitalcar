@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { sendFinancingEmail } from "@/services/emailService";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   VehicleInfoStep, 
@@ -154,74 +153,6 @@ export const FinancingForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Transformar os dados do formulário para o formato do serviço
-      const formData = {
-        // Dados do veículo 
-        vehicleBrand: data.vehicleBrand,
-        vehicleModel: data.vehicleModel,
-        vehicleColor: data.vehicleColor,
-        vehicleYear: data.vehicleYear,
-        vehicleValue: data.vehicleValue,
-        downPayment: data.downPayment,
-        installments: data.installments,
-        
-        // Dados pessoais
-        name: data.name,
-        rg: data.rg,
-        cpf: data.cpf,
-        birthDate: data.birthDate,
-        motherName: data.motherName,
-        fatherName: data.fatherName,
-        nationality: data.nationality,
-        maritalStatus: data.maritalStatus,
-        gender: data.gender,
-        email: data.email,
-        phone: data.phone,
-        
-        // Endereço
-        address: data.address,
-        addressComplement: data.addressComplement,
-        zipCode: data.zipCode,
-        neighborhood: data.neighborhood,
-        city: data.city,
-        state: data.state,
-        residenceType: data.residenceType,
-        
-        // Dados profissionais
-        company: data.company,
-        cnpj: data.cnpj,
-        role: data.role,
-        income: data.income,
-        workAddress: data.workAddress,
-        workNumber: data.workNumber,
-        workComplement: data.workComplement,
-        workZipCode: data.workZipCode,
-        workNeighborhood: data.workNeighborhood,
-        workCity: data.workCity,
-        workState: data.workState,
-        workPhone: data.workPhone,
-        timeAtWork: data.timeAtWork,
-        
-        // Dados bancários
-        bank: data.bank,
-        agency: data.agency,
-        account: data.account,
-        accountType: data.accountType,
-        
-        // Informações adicionais
-        additionalInfo: data.additionalInfo,
-        
-        // Documentos enviados (flags e URLs)
-        residenceProof: !!documentFiles.residenceProof,
-        incomeProof: !!documentFiles.incomeProof,
-        driverLicense: !!documentFiles.driverLicense,
-        
-        // URLs dos documentos
-        residence_proof_url: documentFiles.residenceProofUrl || null,
-        income_proof_url: documentFiles.incomeProofUrl || null,
-        driver_license_url: documentFiles.driverLicenseUrl || null
-      };
-      
       // Inserir os dados no Supabase
       const { data: insertedData, error } = await supabase
         .from('financing_requests')
@@ -290,15 +221,15 @@ export const FinancingForm = () => {
             // URLs dos documentos
             residence_proof_url: documentFiles.residenceProofUrl,
             income_proof_url: documentFiles.incomeProofUrl,
-            driver_license_url: documentFiles.driverLicenseUrl
+            driver_license_url: documentFiles.driverLicenseUrl,
+            
+            // Status inicial
+            status: "Pendente"
           }
         ])
         .select();
       
       if (error) throw error;
-      
-      // Enviar email de notificação
-      const message = await sendFinancingEmail(formData);
       
       // Mostrar mensagem de sucesso
       toast.success("Solicitação de financiamento enviada com sucesso!");
