@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,6 +17,7 @@ import CreateCar from "./pages/admin/CreateCar";
 import EditCar from "./pages/admin/EditCar";
 import CarsList from "./pages/admin/CarsList";
 import FinancingRequests from "./pages/admin/FinancingRequests";
+import FinancingDetail from "./pages/admin/FinancingDetail";
 import AdminLayout from "./components/admin/AdminLayout";
 
 // Tratamento de erros
@@ -52,6 +54,16 @@ const App = () => (
                 <Suspense fallback={<div>Carregando...</div>}>
                   <ErrorBoundary fallback={<div className="p-4 text-center">Erro ao carregar a página de financiamentos. Verifique se o banco de dados está configurado corretamente.</div>}>
                     <FinancingRequests />
+                  </ErrorBoundary>
+                </Suspense>
+              } 
+            />
+            <Route 
+              path="financiamento/:id" 
+              element={
+                <Suspense fallback={<div>Carregando...</div>}>
+                  <ErrorBoundary fallback={<div className="p-4 text-center">Erro ao carregar os detalhes do financiamento.</div>}>
+                    <FinancingDetail />
                   </ErrorBoundary>
                 </Suspense>
               } 

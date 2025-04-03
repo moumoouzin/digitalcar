@@ -1,4 +1,6 @@
+
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Table, 
@@ -11,7 +13,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Download, Trash2 } from 'lucide-react';
+import { Eye, Download, Trash2, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { Spinner } from '@/components/ui/spinner';
@@ -193,6 +195,11 @@ export default function FinancingRequests() {
                         >
                           <Eye size={16} />
                         </Button>
+                        <Link to={`/admin/painel/financiamento/${request.id}`}>
+                          <Button variant="ghost" size="icon">
+                            <FileText size={16} />
+                          </Button>
+                        </Link>
                         <Button 
                           variant="destructive" 
                           size="icon"
@@ -424,6 +431,14 @@ export default function FinancingRequests() {
                       Negar
                     </Button>
                   </div>
+                  <div className="mt-4 flex justify-between">
+                    <Link to={`/admin/painel/financiamento/${selectedRequest.id}`}>
+                      <Button variant="outline" className="flex items-center gap-2">
+                        <FileText size={16} />
+                        Ver página completa
+                      </Button>
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -432,4 +447,4 @@ export default function FinancingRequests() {
       </Dialog>
     </div>
   );
-} 
+}
