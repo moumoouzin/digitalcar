@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -56,6 +57,7 @@ import { Database } from "@/integrations/supabase/types";
 import { statusColor } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { CarCardSkeleton } from "@/components/cars/CarCardSkeleton";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 type CarAd = Database['public']['Tables']['car_ads']['Row'] & {
   car_images?: Array<{
@@ -76,7 +78,9 @@ const CarsList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "active" | "pending">("all");
   const [isLoading, setIsLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [carToDelete, setCarToDelete] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchCars();
@@ -173,10 +177,11 @@ const CarsList = () => {
   
   const handleReject = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error, data } = await supabase
         .from('car_ads')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select();
         
       if (error) {
         throw error;
@@ -199,18 +204,35 @@ const CarsList = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const confirmDelete = (id: string) => {
+    setCarToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!carToDelete) return;
+    
     try {
-      const { error } = await supabase
+      setDeleteLoading(true);
+      console.log('Deleting car with ID:', carToDelete);
+      
+      const { error, data } = await supabase
         .from('car_ads')
         .delete()
-        .eq('id', id);
+        .eq('id', carToDelete)
+        .select();
         
+      console.log('Delete operation response:', { error, data });
+      
       if (error) {
+        console.error('Error from Supabase delete operation:', error);
         throw error;
       }
       
-      setCars(cars.filter(car => car.id !== id));
+      console.log('Delete successful, removing from state');
+      
+      // Atualizar a lista removendo o item excluído
+      setCars(prev => prev.filter(car => car.id !== carToDelete));
       
       toast({
         title: "Anúncio excluído",
@@ -224,6 +246,10 @@ const CarsList = () => {
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
+    } finally {
+      setDeleteDialogOpen(false);
+      setCarToDelete(null);
+      setDeleteLoading(false);
     }
   };
 
@@ -243,7 +269,7 @@ const CarsList = () => {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpxcndwZm1ib2NmcHNwb213ZGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDM2MTUxNDUsImV4cCI6MjAxOTE5MTE0NX0.GZKKvOj7wKvwZ0QbKbzZIAUQUzioswXJOZE7r6bU3Ug',
+            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impxcnd2Zm1ib2NmcHNwb213ZGRxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDM2MTUxNDUsImV4cCI6MjAxOTE5MTE0NX0.GZKKvOj7wKvwZ0QbKbzZIAUQUzioswXJOZE7r6bU3Ug',
             'Prefer': 'return=minimal'
           },
           body: JSON.stringify({ 
@@ -473,7 +499,7 @@ const CarsList = () => {
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem 
-                            onClick={() => setCarToDelete(car.id)}
+                            onClick={() => confirmDelete(car.id)}
                             className="text-red-600"
                           >
                             <Trash className="mr-2 h-4 w-4" />
@@ -497,33 +523,32 @@ const CarsList = () => {
         </CardContent>
       </Card>
 
-      {carToDelete && (
-        <Dialog open={!!carToDelete} onOpenChange={() => setCarToDelete(null)}>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Excluir Anúncio</DialogTitle>
-              <DialogDescription>
-                Tem certeza de que deseja excluir este anúncio?
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="outline">
-                  Cancelar
-                </Button>
-              </DialogClose>
-              <DialogClose asChild>
-                <Button type="button" variant="destructive" onClick={() => {
-                  handleDelete(carToDelete);
-                  setCarToDelete(null);
-                }}>
-                  Excluir
-                </Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+      {/* AlertDialog para confirmação de exclusão */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Anúncio</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza de que deseja excluir este anúncio? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setDeleteDialogOpen(false);
+              setCarToDelete(null);
+            }}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-600 text-white"
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? <Spinner size="sm" /> : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

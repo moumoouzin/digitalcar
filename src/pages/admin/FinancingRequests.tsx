@@ -44,6 +44,7 @@ interface FinancingRequest {
 export default function FinancingRequests() {
   const [requests, setRequests] = useState<FinancingRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<FinancingRequest | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -64,6 +65,7 @@ export default function FinancingRequests() {
 
       if (error) throw error;
       
+      console.log('Financing requests fetched:', data);
       setRequests(data || []);
     } catch (error: any) {
       console.error('Erro ao buscar pedidos de financiamento:', error);
@@ -86,16 +88,27 @@ export default function FinancingRequests() {
     if (!requestToDelete) return;
     
     try {
-      setLoading(true);
-      const { error } = await supabase
+      setDeleteLoading(true);
+      console.log('Deleting financing request with ID:', requestToDelete);
+      
+      // Usar await para garantir que a operação seja concluída antes de prosseguir
+      const { error, data } = await supabase
         .from('financing_requests')
         .delete()
-        .eq('id', requestToDelete);
+        .eq('id', requestToDelete)
+        .select();
+      
+      console.log('Delete operation response:', { error, data });
         
-      if (error) throw error;
+      if (error) {
+        console.error('Error from Supabase delete operation:', error);
+        throw error;
+      }
+      
+      console.log('Delete successful, removing from state');
       
       // Atualizar a lista removendo o item excluído
-      setRequests(requests.filter(req => req.id !== requestToDelete));
+      setRequests(prev => prev.filter(req => req.id !== requestToDelete));
       
       toast({
         title: "Pedido excluído",
@@ -112,7 +125,7 @@ export default function FinancingRequests() {
     } finally {
       setDeleteDialogOpen(false);
       setRequestToDelete(null);
-      setLoading(false);
+      setDeleteLoading(false);
     }
   }
 
@@ -479,8 +492,9 @@ export default function FinancingRequests() {
             <AlertDialogAction 
               onClick={handleDelete}
               className="bg-red-500 hover:bg-red-600 text-white"
+              disabled={deleteLoading}
             >
-              {loading ? <Spinner size="sm" /> : "Excluir"}
+              {deleteLoading ? <Spinner size="sm" /> : "Excluir"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
