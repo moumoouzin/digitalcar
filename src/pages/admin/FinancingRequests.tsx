@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -62,6 +61,7 @@ export default function FinancingRequests() {
       setDeleteLoading(true);
       console.log('Deletando pedido de financiamento com ID:', requestToDelete);
       
+      // Excluir o pedido
       const { error } = await supabase
         .from('financing_requests')
         .delete()
@@ -72,18 +72,27 @@ export default function FinancingRequests() {
         throw error;
       }
       
-      console.log('Exclusão bem-sucedida, removendo do estado');
+      // Verificar se o registro ainda existe
+      const { data: checkData } = await supabase
+        .from('financing_requests')
+        .select('id')
+        .eq('id', requestToDelete)
+        .single();
       
-      // Atualizar a lista removendo o item excluído
+      if (checkData) {
+        console.error('O registro ainda existe após a tentativa de exclusão');
+        throw new Error('Não foi possível excluir o registro completamente');
+      }
+      
+      console.log('Exclusão bem-sucedida e verificada');
+      
+      // Remover do estado local
       setRequests(prev => prev.filter(req => req.id !== requestToDelete));
       
       toast({
         title: "Pedido excluído",
         description: "O pedido de financiamento foi excluído com sucesso",
       });
-      
-      // Após a exclusão bem-sucedida, buscamos os dados novamente para garantir sincronização
-      await fetchFinancingRequests();
       
     } catch (error: any) {
       console.error('Erro ao excluir pedido:', error);
@@ -92,6 +101,9 @@ export default function FinancingRequests() {
         description: error.message || "Não foi possível excluir o pedido",
         variant: "destructive"
       });
+      
+      // Recarregar dados para garantir sincronização
+      await fetchFinancingRequests();
     } finally {
       setDeleteDialogOpen(false);
       setRequestToDelete(null);
@@ -115,25 +127,42 @@ export default function FinancingRequests() {
   }
 
   async function updateRequestStatus(request: FinancingRequest, newStatus: string) {
-    const { error } = await supabase
-      .from('financing_requests')
-      .update({ status: newStatus })
-      .eq('id', request.id);
+    try {
+      const { error } = await supabase
+        .from('financing_requests')
+        .update({ status: newStatus })
+        .eq('id', request.id);
+        
+      if (error) throw error;
       
-    if (error) throw error;
-    
-    // Atualizar o estado local
-    setSelectedRequest({
-      ...request,
-      status: newStatus
-    });
-    
-    // Atualizar a lista de pedidos
-    setRequests(requests.map(req => 
-      req.id === request.id 
-        ? { ...req, status: newStatus } 
-        : req
-    ));
+      // Atualizar o estado local
+      setSelectedRequest({
+        ...request,
+        status: newStatus
+      });
+      
+      // Atualizar a lista de pedidos
+      setRequests(requests.map(req => 
+        req.id === request.id 
+          ? { ...req, status: newStatus } 
+          : req
+      ));
+      
+      toast({
+        title: "Status atualizado",
+        description: `O pedido foi marcado como ${newStatus} com sucesso`,
+      });
+    } catch (error: any) {
+      console.error('Erro ao atualizar status:', error);
+      toast({
+        title: "Erro ao atualizar status",
+        description: error.message || "Não foi possível atualizar o status do pedido",
+        variant: "destructive"
+      });
+      
+      // Recarregar dados para garantir sincronização
+      await fetchFinancingRequests();
+    }
   }
 
   return (
