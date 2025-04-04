@@ -57,6 +57,7 @@ import { Database } from "@/integrations/supabase/types";
 import { statusColor } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { CarCardSkeleton } from "@/components/cars/CarCardSkeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 type CarAd = Database['public']['Tables']['car_ads']['Row'] & {
