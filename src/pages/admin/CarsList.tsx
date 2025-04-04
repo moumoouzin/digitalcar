@@ -8,69 +8,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { 
-  CheckCircle, 
-  XCircle,
-  Loader2,
-  Car,
-  Edit,
-  Eye,
-  MessageSquare,
-  MoreVertical,
-  Trash,
-  X,
-  FileText,
-  Check,
-} from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase, refreshSchemaCache } from "@/integrations/supabase/client";
-import { Database } from "@/integrations/supabase/types";
-import { statusColor } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { CarCardSkeleton } from "@/components/cars/CarCardSkeleton";
-import { Spinner } from "@/components/ui/spinner";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-
-type CarAd = Database['public']['Tables']['car_ads']['Row'] & {
-  car_images?: Array<{
-    image_url: string;
-    is_primary: boolean | null;
-  }>;
-  car_features?: Array<{
-    feature_id: string;
-  }>;
-  images?: string[];
-  features?: string[];
-};
+import { CarsFilter } from "@/components/admin/cars/CarsFilter";
+import { CarsTable } from "@/components/admin/cars/CarsTable";
+import { DeleteCarDialog } from "@/components/admin/cars/DeleteCarDialog";
+import { CarAd } from "@/components/admin/cars/types";
 
 const CarsList = () => {
   const navigate = useNavigate();
@@ -138,14 +83,6 @@ const CarsList = () => {
     }
   };
 
-  const handleEdit = (id: string) => {
-    navigate(`/admin/painel/car/edit/${id}`);
-  };
-
-  const handleView = (id: string) => {
-    window.open(`/veiculo/${id}`, "_blank");
-  };
-
   const handleApprove = async (id: string) => {
     try {
       const { error } = await supabase
@@ -178,11 +115,10 @@ const CarsList = () => {
   
   const handleReject = async (id: string) => {
     try {
-      const { error, data } = await supabase
+      const { error } = await supabase
         .from('car_ads')
         .delete()
-        .eq('id', id)
-        .select();
+        .eq('id', id);
         
       if (error) {
         throw error;
@@ -215,24 +151,16 @@ const CarsList = () => {
     
     try {
       setDeleteLoading(true);
-      console.log('Deleting car with ID:', carToDelete);
       
-      const { error, data } = await supabase
+      const { error } = await supabase
         .from('car_ads')
         .delete()
-        .eq('id', carToDelete)
-        .select();
+        .eq('id', carToDelete);
         
-      console.log('Delete operation response:', { error, data });
-      
       if (error) {
-        console.error('Error from Supabase delete operation:', error);
         throw error;
       }
       
-      console.log('Delete successful, removing from state');
-      
-      // Atualizar a lista removendo o item excluído
       setCars(prev => prev.filter(car => car.id !== carToDelete));
       
       toast({
@@ -256,15 +184,10 @@ const CarsList = () => {
 
   const handleToggleFeatured = async (id: string, currentValue: boolean) => {
     try {
-      console.log('Tentando atualizar anúncio:', id, 'Valor atual:', currentValue);
-      
-      // Primeiro, tenta atualizar o cache de esquema
       await refreshSchemaCache();
       
-      // Utiliza uma abordagem mais direta
       const newValue = currentValue === undefined ? true : !currentValue;
       
-      // Tenta atualizar o campo diretamente usando um método mais básico
       try {
         const response = await fetch(`https://jqrwvfmbocfpspomwddq.supabase.co/rest/v1/car_ads?id=eq.${id}`, {
           method: 'PATCH',
@@ -282,7 +205,6 @@ const CarsList = () => {
           throw new Error(`Erro no servidor: ${response.status}`);
         }
         
-        // Deu certo! Atualiza o estado
         setCars(
           cars.map((car) =>
             car.id === id ? { ...car, is_featured: newValue } : car
@@ -302,18 +224,15 @@ const CarsList = () => {
       } catch (fetchError) {
         console.error("Erro na requisição direta:", fetchError);
         
-        // Tenta com o método normal do Supabase como fallback
         const { error } = await supabase
           .from('car_ads')
           .update({ is_featured: newValue })
           .eq('id', id);
         
         if (error) {
-          console.error("Erro do Supabase:", error);
           throw new Error(error.message || "Erro desconhecido");
         }
         
-        // Se chegou até aqui, foi bem-sucedido com o método fallback
         setCars(
           cars.map((car) =>
             car.id === id ? { ...car, is_featured: newValue } : car
@@ -374,182 +293,29 @@ const CarsList = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col md:flex-row justify-between gap-4 mb-6">
-            <div className="relative w-full md:w-64">
-              <Input
-                placeholder="Buscar anúncios..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-3"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant={filterStatus === "all" ? "default" : "outline"}
-                onClick={() => setFilterStatus("all")}
-                size="sm"
-              >
-                Todos
-              </Button>
-              <Button
-                variant={filterStatus === "active" ? "default" : "outline"}
-                onClick={() => setFilterStatus("active")}
-                size="sm"
-              >
-                Ativos
-              </Button>
-              <Button
-                variant={filterStatus === "pending" ? "default" : "outline"}
-                onClick={() => setFilterStatus("pending")}
-                size="sm"
-              >
-                Pendentes
-              </Button>
-            </div>
-          </div>
+          <CarsFilter 
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
+          />
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Veículo</TableHead>
-                  <TableHead>Preço</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="hidden md:table-cell">Data</TableHead>
-                  <TableHead className="hidden md:table-cell">Visualizações</TableHead>
-                  <TableHead className="hidden md:table-cell">Contatos</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {cars.map((car) => (
-                  <TableRow key={car.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        {car.images && car.images.length > 0 && (
-                          <img 
-                            src={car.images[0]} 
-                            alt={car.title} 
-                            className="h-10 w-10 rounded-md object-cover"
-                          />
-                        )}
-                        <div>
-                          <div className="font-medium">{car.title}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {car.brand} {car.model} ({car.year})
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{`R$ ${car.price.toLocaleString('pt-BR')}`}</TableCell>
-                    <TableCell>
-                      {car.status === "active" ? (
-                        <Badge variant="default" className="bg-green-500">Ativo</Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-amber-500 border-amber-500">Pendente</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">{new Date(car.created_at).toLocaleDateString('pt-BR')}</TableCell>
-                    <TableCell className="hidden md:table-cell">{car.views || 0}</TableCell>
-                    <TableCell className="hidden md:table-cell">{car.contacts || 0}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">Abrir menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          {car.status === "active" && (
-                            <DropdownMenuItem onClick={() => handleView(car.id)}>
-                              <Eye className="mr-2 h-4 w-4" />
-                              <span>Visualizar</span>
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem onClick={() => handleEdit(car.id)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            <span>Editar</span>
-                          </DropdownMenuItem>
-                          {car.status === "pending" && (
-                            <>
-                              <DropdownMenuItem onClick={() => handleApprove(car.id)}>
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                <span>Aprovar</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleReject(car.id)}>
-                                <XCircle className="mr-2 h-4 w-4" />
-                                <span>Rejeitar</span>
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                          <DropdownMenuItem onClick={() => handleToggleFeatured(car.id, car.is_featured)}>
-                            {car.is_featured ? (
-                              <>
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                <span>Remover dos destaques</span>
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                <span>Marcar como destaque</span>
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => confirmDelete(car.id)}
-                            className="text-red-600"
-                          >
-                            <Trash className="mr-2 h-4 w-4" />
-                            <span>Excluir</span>
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {cars.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      Nenhum anúncio encontrado
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          <CarsTable 
+            cars={cars}
+            onApprove={handleApprove}
+            onReject={handleReject}
+            onToggleFeatured={handleToggleFeatured}
+            onDelete={confirmDelete}
+          />
         </CardContent>
       </Card>
 
-      {/* AlertDialog para confirmação de exclusão */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Anúncio</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza de que deseja excluir este anúncio? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setDeleteDialogOpen(false);
-              setCarToDelete(null);
-            }}>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              className="bg-red-500 hover:bg-red-600 text-white"
-              disabled={deleteLoading}
-            >
-              {deleteLoading ? <Spinner size="sm" /> : "Excluir"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteCarDialog 
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDelete}
+        isLoading={deleteLoading}
+      />
     </div>
   );
 };
