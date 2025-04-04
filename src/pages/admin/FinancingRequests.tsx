@@ -89,23 +89,21 @@ export default function FinancingRequests() {
     
     try {
       setDeleteLoading(true);
-      console.log('Deleting financing request with ID:', requestToDelete);
+      console.log('Deletando pedido de financiamento com ID:', requestToDelete);
       
-      // Usar await para garantir que a operação seja concluída antes de prosseguir
-      const { error, data } = await supabase
+      // Correção aqui: não estamos mais usando o método select() junto com delete()
+      // pois isso pode causar problemas em alguns casos no Supabase
+      const { error } = await supabase
         .from('financing_requests')
         .delete()
-        .eq('id', requestToDelete)
-        .select();
+        .eq('id', requestToDelete);
       
-      console.log('Delete operation response:', { error, data });
-        
       if (error) {
-        console.error('Error from Supabase delete operation:', error);
+        console.error('Erro na operação de exclusão do Supabase:', error);
         throw error;
       }
       
-      console.log('Delete successful, removing from state');
+      console.log('Exclusão bem-sucedida, removendo do estado');
       
       // Atualizar a lista removendo o item excluído
       setRequests(prev => prev.filter(req => req.id !== requestToDelete));
@@ -114,6 +112,9 @@ export default function FinancingRequests() {
         title: "Pedido excluído",
         description: "O pedido de financiamento foi excluído com sucesso",
       });
+      
+      // Após a exclusão bem-sucedida, buscamos os dados novamente para garantir sincronização
+      await fetchFinancingRequests();
       
     } catch (error: any) {
       console.error('Erro ao excluir pedido:', error);
