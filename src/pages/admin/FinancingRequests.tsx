@@ -17,6 +17,7 @@ import { Eye, Download, Trash2, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { Spinner } from '@/components/ui/spinner';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
 // Interface que reflete a estrutura na tabela do Supabase
 interface FinancingRequest {
@@ -45,6 +46,8 @@ export default function FinancingRequests() {
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<FinancingRequest | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [requestToDelete, setRequestToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -74,24 +77,31 @@ export default function FinancingRequests() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm('Tem certeza que deseja excluir este pedido de financiamento?')) return;
+  function confirmDelete(id: string) {
+    setRequestToDelete(id);
+    setDeleteDialogOpen(true);
+  }
+
+  async function handleDelete() {
+    if (!requestToDelete) return;
     
     try {
+      setLoading(true);
       const { error } = await supabase
         .from('financing_requests')
         .delete()
-        .eq('id', id);
+        .eq('id', requestToDelete);
         
       if (error) throw error;
+      
+      // Atualizar a lista removendo o item excluído
+      setRequests(requests.filter(req => req.id !== requestToDelete));
       
       toast({
         title: "Pedido excluído",
         description: "O pedido de financiamento foi excluído com sucesso",
       });
       
-      // Atualizar a lista removendo o item excluído
-      setRequests(requests.filter(req => req.id !== id));
     } catch (error: any) {
       console.error('Erro ao excluir pedido:', error);
       toast({
@@ -99,6 +109,10 @@ export default function FinancingRequests() {
         description: error.message || "Não foi possível excluir o pedido",
         variant: "destructive"
       });
+    } finally {
+      setDeleteDialogOpen(false);
+      setRequestToDelete(null);
+      setLoading(false);
     }
   }
 
@@ -203,7 +217,7 @@ export default function FinancingRequests() {
                         <Button 
                           variant="destructive" 
                           size="icon"
-                          onClick={() => handleDelete(request.id)}
+                          onClick={() => confirmDelete(request.id)}
                         >
                           <Trash2 size={16} />
                         </Button>
@@ -445,6 +459,32 @@ export default function FinancingRequests() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Diálogo de confirmação de exclusão */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Você tem certeza que deseja excluir este pedido de financiamento? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setDeleteDialogOpen(false);
+              setRequestToDelete(null);
+            }}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              {loading ? <Spinner size="sm" /> : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
