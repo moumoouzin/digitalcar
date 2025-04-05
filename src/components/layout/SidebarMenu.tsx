@@ -1,6 +1,7 @@
+
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, Car, Info, FileQuestion, Phone, User, Menu, LayoutDashboard, FileText } from "lucide-react";
+import { Home, Car, Info, FileQuestion, Phone, User, Menu, LayoutDashboard, FileText, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
@@ -9,6 +10,8 @@ import {
   DrawerContent,
   DrawerTrigger
 } from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Sheet, SheetContent, SheetClose } from "@/components/ui/sheet";
 
 type MenuItem = {
   name: string;
@@ -20,9 +23,9 @@ type MenuItem = {
 const siteMenuItems: MenuItem[] = [
   { name: "Início", path: "/", icon: Home },
   { name: "Veículos", path: "/veiculos", icon: Car },
-  { name: "Sobre Nós", path: "/", icon: Info },
-  { name: "FAQ", path: "/", icon: FileQuestion },
-  { name: "Contato", path: "/", icon: Phone },
+  { name: "Sobre Nós", path: "/sobre", icon: Info },
+  { name: "FAQ", path: "/faq", icon: FileQuestion },
+  { name: "Contato", path: "/contato", icon: Phone },
   { name: "Admin", path: "/admin/login", icon: User }
 ];
 
@@ -36,6 +39,7 @@ const adminMenuItems: MenuItem[] = [
 const SidebarMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const isMobile = useIsMobile();
 
   // Check if the current location is in the admin panel
   const isAdminPanel = location.pathname.includes('/admin/painel');
@@ -106,23 +110,13 @@ const SidebarMenu = () => {
     </div>
   );
 
-  // Mobile drawer
+  // Mobile sidebar usando Sheet ao invés de Drawer para melhor experiência móvel
   const MobileDrawer = () => (
     <div className="md:hidden">
-      <Drawer open={isOpen} onOpenChange={setIsOpen}>
-        <DrawerTrigger asChild>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-white"
-            aria-label="Abrir menu"
-          >
-            <Menu />
-          </Button>
-        </DrawerTrigger>
-        <DrawerContent>
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-6">
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <SheetContent side="left" className="w-[85%] max-w-[300px] p-0 bg-neutral-900 text-white">
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between p-4 border-b border-neutral-800">
               <div className="flex items-center gap-3">
                 <img
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
@@ -131,12 +125,28 @@ const SidebarMenu = () => {
                 />
                 <h1 className="text-lg font-bold">Digital Car</h1>
               </div>
-              <DrawerClose />
+              <SheetClose asChild>
+                <Button variant="ghost" size="icon" className="text-white">
+                  <X size={18} />
+                </Button>
+              </SheetClose>
             </div>
-            {renderMenuItems()}
+            <div className="p-4 flex-1 overflow-y-auto">
+              {renderMenuItems()}
+            </div>
           </div>
-        </DrawerContent>
-      </Drawer>
+        </SheetContent>
+      </Sheet>
+      
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="text-white md:hidden"
+        onClick={() => setIsOpen(true)}
+        aria-label="Abrir menu"
+      >
+        <Menu />
+      </Button>
     </div>
   );
 

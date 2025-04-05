@@ -2,16 +2,18 @@
 import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   return (
     <nav className="bg-[#FF0000] text-neutral-100 py-3">
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center">
           <div className="hidden md:flex justify-center w-full">
-            <ul className="flex space-x-12">
+            <ul className="flex space-x-6 lg:space-x-12">
               <li className="text-sm font-semibold hover:text-white/80">
                 <Link to="/veiculos">Veículos</Link>
               </li>
@@ -69,31 +71,51 @@ export const Navigation = () => {
           </div>
         </div>
 
-        {/* Menu Mobile Dropdown */}
+        {/* Menu Mobile Dropdown - Simplificado e mais compacto */}
         {isMenuOpen && (
-          <div className="md:hidden pt-4 pb-2 mt-3 border-t border-white/20">
-            <ul className="space-y-3">
-              <li className="text-sm font-semibold hover:text-white/80 py-1">
-                <Link to="/veiculos" onClick={() => setIsMenuOpen(false)}>Veículos</Link>
+          <div className="md:hidden pt-3 pb-1 mt-2 border-t border-white/20">
+            <ul className="grid grid-cols-2 gap-x-2 gap-y-2 py-2">
+              <li className="text-xs font-semibold">
+                <Link to="/veiculos" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block py-1.5 px-2 rounded-md hover:bg-white/10"
+                >
+                  Veículos
+                </Link>
               </li>
-              <li className="text-sm font-semibold hover:text-white/80 py-1">
-                <Link to="/" onClick={() => setIsMenuOpen(false)}>Sobre Nós</Link>
+              <li className="text-xs font-semibold">
+                <Link to="/" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block py-1.5 px-2 rounded-md hover:bg-white/10"
+                >
+                  Sobre Nós
+                </Link>
               </li>
-              <li className="text-sm font-semibold hover:text-white/80 py-1">
-                <Link to="/financiamento" onClick={() => setIsMenuOpen(false)}>Financiamento</Link>
+              <li className="text-xs font-semibold">
+                <Link to="/financiamento" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block py-1.5 px-2 rounded-md hover:bg-white/10"
+                >
+                  Financiamento
+                </Link>
               </li>
-              <li className="text-sm font-semibold hover:text-white/80 py-1">
-                <Link to="/" onClick={() => setIsMenuOpen(false)}>Contato</Link>
+              <li className="text-xs font-semibold">
+                <Link to="/" 
+                  onClick={() => setIsMenuOpen(false)}
+                  className="block py-1.5 px-2 rounded-md hover:bg-white/10"
+                >
+                  Contato
+                </Link>
               </li>
-              <li className="text-sm font-semibold hover:text-white/80 py-1">
+              <li className="text-xs font-semibold col-span-2">
                 <Link 
                   to="/admin/login" 
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-1 py-1.5 px-2 rounded-md hover:bg-white/10"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <svg 
-                    width="16" 
-                    height="16" 
+                    width="14" 
+                    height="14" 
                     viewBox="0 0 24 24" 
                     fill="none" 
                     xmlns="http://www.w3.org/2000/svg"
