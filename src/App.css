@@ -1,28 +1,19 @@
 
 #root {
-  max-width: 1280px;
+  width: 100%;
   margin: 0 auto;
-  padding: 1rem;
   text-align: center;
-}
-
-@media (min-width: 768px) {
-  #root {
-    padding: 2rem;
-  }
 }
 
 .logo {
   height: 4em;
-  padding: 1em;
   will-change: filter;
   transition: filter 300ms;
 }
 
 @media (min-width: 768px) {
   .logo {
-    height: 6em;
-    padding: 1.5em;
+    height: 5em;
   }
 }
 
@@ -65,8 +56,8 @@
 /* Estilos responsivos adicionais */
 .container {
   width: 100%;
-  padding-right: 1rem;
-  padding-left: 1rem;
+  padding-right: 0.75rem;
+  padding-left: 0.75rem;
   margin-right: auto;
   margin-left: auto;
 }
@@ -74,6 +65,8 @@
 @media (min-width: 640px) {
   .container {
     max-width: 640px;
+    padding-right: 1rem;
+    padding-left: 1rem;
   }
 }
 
@@ -96,5 +89,28 @@
 @media (min-width: 1280px) {
   .container {
     max-width: 1280px;
+  }
+}
+
+/* Fix para problemas específicos no mobile */
+@media (max-width: 640px) {
+  .logo-shadow {
+    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
+  }
+  
+  /* Melhorar espaçamento nos cards em dispositivos móveis */
+  .card {
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* Corrigir espaço para painel administrativo */
+.admin-content {
+  padding-left: 0;
+}
+
+@media (min-width: 768px) {
+  .admin-content {
+    padding-left: 16rem;
   }
 }

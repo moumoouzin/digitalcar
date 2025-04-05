@@ -1,16 +1,20 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, Menu } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import SidebarMenu from "../layout/SidebarMenu";
 import { supabase } from "@/integrations/supabase/client";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const AdminLayout = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showDatabaseAlert, setShowDatabaseAlert] = useState(false);
+  const isMobile = useIsMobile();
 
   // Verificar autenticação ao carregar o componente
   useEffect(() => {
@@ -59,17 +63,42 @@ const AdminLayout = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-neutral-800 text-white py-4 px-6 z-10 relative">
+      <header className="bg-neutral-800 text-white py-3 px-4 z-10 relative">
         <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {isMobile && (
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-white">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-[250px]">
+                  <div className="flex flex-col h-full bg-neutral-800 text-white">
+                    <div className="p-4 border-b border-neutral-700 flex items-center gap-2">
+                      <Link to="/">
+                        <img
+                          src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
+                          alt="Digital Car Logo"
+                          className="h-8 logo-shadow"
+                        />
+                      </Link>
+                      <span className="font-bold">Digital Car</span>
+                    </div>
+                    <SidebarMenu />
+                  </div>
+                </SheetContent>
+              </Sheet>
+            )}
+            
             <Link to="/">
               <img
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
                 alt="Digital Car Logo"
-                className="h-12 logo-shadow cursor-pointer hover:scale-105 transition-transform"
+                className="h-8 logo-shadow cursor-pointer hover:scale-105 transition-transform"
               />
             </Link>
-            <h1 className="text-xl font-bold">Painel Administrativo</h1>
+            <h1 className="text-lg font-bold hidden sm:block">Painel Administrativo</h1>
           </div>
           <Button variant="ghost" onClick={handleLogout} className="text-white hover:text-red-300">
             Sair
@@ -79,11 +108,15 @@ const AdminLayout = () => {
 
       {/* Sidebar e conteúdo principal */}
       <div className="flex flex-1">
-        {/* SidebarMenu para navegação rápida */}
-        <SidebarMenu />
+        {/* SidebarMenu para navegação - Visível apenas em telas maiores */}
+        <div className="hidden md:block">
+          <div className="h-screen w-64 fixed left-0 bg-neutral-900 text-white shadow-lg">
+            <SidebarMenu />
+          </div>
+        </div>
 
         {/* Conteúdo principal - ajustado para considerar o menu lateral */}
-        <main className="flex-1 p-6 bg-gray-100 md:ml-64">
+        <main className="flex-1 p-3 sm:p-6 bg-gray-100 md:ml-64">
           {showDatabaseAlert && (
             <Alert variant="destructive" className="mb-6">
               <InfoIcon className="h-4 w-4" />

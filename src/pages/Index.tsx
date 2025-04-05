@@ -5,6 +5,7 @@ import { Navigation } from "@/components/layout/Navigation";
 import { CarHighlights } from "@/components/cars/CarHighlights";
 import { AboutSection } from "@/components/about/AboutSection";
 import { Footer } from "@/components/layout/Footer";
+import { FeaturedCars } from "@/components/cars/FeaturedCars";
 
 const Index = () => {
   return (
@@ -17,7 +18,12 @@ const Index = () => {
       <Navigation />
       <main className="flex-grow">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
-          <CarHighlights />
+          <div className="mb-6 md:mb-10">
+            <CarHighlights />
+          </div>
+          <div className="mb-8">
+            <FeaturedCars />
+          </div>
           <AboutSection />
         </div>
       </main>
