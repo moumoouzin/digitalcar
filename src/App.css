@@ -154,3 +154,93 @@
     font-size: 0.875rem;
   }
 }
+
+/* Correção para tabs no formulário de criação de veículos */
+.create-car-tabs .tabs-list {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+/* Evitar sobreposição nas guias */
+[data-orientation="horizontal"] {
+  flex-wrap: nowrap !important;
+}
+
+/* Ajustes para cabeçalhos de tabs */
+.tab-header {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .tab-header {
+    font-size: 1.1rem;
+  }
+  
+  /* Melhorar espaçamento entre campos em mobile */
+  .form-row {
+    margin-bottom: 1rem;
+  }
+  
+  /* Ajuste para botões em telas menores */
+  .form-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+  }
+  
+  /* Evitar que textos longos quebrem o layout */
+  button {
+    white-space: nowrap;
+  }
+  
+  /* Melhorar leitura de labels */
+  label {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+}
+
+/* Corrigir espaçamento vertical em formulários */
+.form-section + .form-section {
+  margin-top: 2rem;
+}
+
+/* Ajustar espaçamento em abas */
+.tabs-trigger {
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.875rem !important;
+}
+
+@media (min-width: 768px) {
+  .tabs-trigger {
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+  }
+}
+
+/* Garantir que os TabsTriggers não se sobreponham */
+[role="tablist"] {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+[role="tablist"]::-webkit-scrollbar {
+  display: none;
+}
+
+[role="tab"] {
+  white-space: nowrap;
+  min-width: max-content;
+}
+
+/* Melhorar altura das guias */
+.tabs-list-container {
+  height: auto !important;
+  min-height: 3rem;
+}

@@ -307,23 +307,30 @@ const CreateCar = () => {
       </div>
 
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <Tabs defaultValue="info" className="w-full" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 mb-2">
-            <TabsTrigger value="info">Informações Básicas</TabsTrigger>
-            <TabsTrigger value="details">Detalhes e Opcionais</TabsTrigger>
-            <TabsTrigger value="photos">Fotos e Finalização</TabsTrigger>
-          </TabsList>
+        <Tabs 
+          defaultValue="info" 
+          className="w-full create-car-tabs" 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+        >
+          <div className="tabs-list-container overflow-x-auto">
+            <TabsList className="w-full mb-2 tabs-list">
+              <TabsTrigger value="info" className="tabs-trigger">Informações Básicas</TabsTrigger>
+              <TabsTrigger value="details" className="tabs-trigger">Detalhes e Opcionais</TabsTrigger>
+              <TabsTrigger value="photos" className="tabs-trigger">Fotos e Finalização</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="info" className="mt-4">
             <Card>
               <CardHeader>
-                <CardTitle>Informações Básicas</CardTitle>
+                <CardTitle className="tab-header">Informações Básicas</CardTitle>
                 <CardDescription>
                   Preencha as informações essenciais do veículo.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="space-y-2">
+                <div className="space-y-2 form-section">
                   <Label htmlFor="title">Título do Anúncio</Label>
                   <Input
                     id="title"
@@ -335,7 +342,7 @@ const CreateCar = () => {
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 form-section">
                   <div className="space-y-2">
                     <Label htmlFor="brand">Marca</Label>
                     {!isCustomBrand ? (
@@ -447,7 +454,7 @@ const CreateCar = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 form-section">
                   <div className="space-y-2">
                     <Label htmlFor="year">Ano</Label>
                     {!isCustomYear ? (
@@ -515,7 +522,7 @@ const CreateCar = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 form-section">
                   <Label htmlFor="description">Descrição do Veículo</Label>
                   <Textarea
                     id="description"
@@ -528,7 +535,7 @@ const CreateCar = () => {
                   )}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 form-section">
                   <Label htmlFor="whatsapp">Número de WhatsApp para Contato</Label>
                   <Input
                     id="whatsapp"
@@ -558,13 +565,13 @@ const CreateCar = () => {
           <TabsContent value="details" className="mt-4">
             <Card>
               <CardHeader>
-                <CardTitle>Detalhes e Opcionais</CardTitle>
+                <CardTitle className="tab-header">Detalhes e Opcionais</CardTitle>
                 <CardDescription>
                   Adicione mais detalhes e selecione os opcionais do veículo.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 form-section">
                   <div className="space-y-2">
                     <Label htmlFor="color">Cor</Label>
                     <Input
@@ -645,7 +652,7 @@ const CreateCar = () => {
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-4 form-section">
                   <Label>Características e Opcionais</Label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                     {carFeatures.map((feature) => (
@@ -666,7 +673,7 @@ const CreateCar = () => {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-between">
+              <CardFooter className="flex justify-between form-buttons">
                 <Button 
                   type="button" 
                   variant="outline"
@@ -687,7 +694,7 @@ const CreateCar = () => {
           <TabsContent value="photos" className="mt-4">
             <Card>
               <CardHeader>
-                <CardTitle>Fotos e Finalização</CardTitle>
+                <CardTitle className="tab-header">Fotos e Finalização</CardTitle>
                 <CardDescription>
                   Adicione fotos do veículo e revise as informações antes de publicar.
                 </CardDescription>
@@ -754,7 +761,7 @@ const CreateCar = () => {
                   </p>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-between">
+              <CardFooter className="flex justify-between form-buttons">
                 <Button 
                   type="button" 
                   variant="outline" 
