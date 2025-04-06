@@ -87,7 +87,6 @@ const CreateCar = () => {
   const [activeTab, setActiveTab] = useState("info");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Novos estados para campos personalizados
   const [customBrand, setCustomBrand] = useState("");
   const [customModel, setCustomModel] = useState("");
   const [customYear, setCustomYear] = useState("");
@@ -309,13 +308,13 @@ const CreateCar = () => {
 
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Tabs defaultValue="info" className="w-full" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-3 mb-2">
             <TabsTrigger value="info">Informações Básicas</TabsTrigger>
             <TabsTrigger value="details">Detalhes e Opcionais</TabsTrigger>
             <TabsTrigger value="photos">Fotos e Finalização</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="info" className="mt-6">
+          <TabsContent value="info" className="mt-4">
             <Card>
               <CardHeader>
                 <CardTitle>Informações Básicas</CardTitle>
@@ -340,32 +339,30 @@ const CreateCar = () => {
                   <div className="space-y-2">
                     <Label htmlFor="brand">Marca</Label>
                     {!isCustomBrand ? (
-                      <>
-                        <Select
-                          onValueChange={(value) => {
-                            if (value === "outro") {
-                              setIsCustomBrand(true);
-                              setSelectedBrand("");
-                              form.setValue("model", "");
-                            } else {
-                              setSelectedBrand(value);
-                              form.setValue("model", "");
-                            }
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione a marca" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {carBrands.map((brand) => (
-                              <SelectItem key={brand.name} value={brand.name}>
-                                {brand.name}
-                              </SelectItem>
-                            ))}
-                            <SelectItem value="outro">Outro</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </>
+                      <Select
+                        onValueChange={(value) => {
+                          if (value === "outro") {
+                            setIsCustomBrand(true);
+                            setSelectedBrand("");
+                            form.setValue("model", "");
+                          } else {
+                            setSelectedBrand(value);
+                            form.setValue("model", "");
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a marca" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {carBrands.map((brand) => (
+                            <SelectItem key={brand.name} value={brand.name}>
+                              {brand.name}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="outro">Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
                     ) : (
                       <div className="space-y-2">
                         <div className="flex gap-2">
@@ -394,34 +391,32 @@ const CreateCar = () => {
                   <div className="space-y-2">
                     <Label htmlFor="model">Modelo</Label>
                     {!isCustomModel ? (
-                      <>
-                        <Select
-                          onValueChange={(value) => {
-                            if (value === "outro") {
-                              setIsCustomModel(true);
-                              form.setValue("model", "");
-                            } else {
-                              form.setValue("model", value);
-                            }
-                          }}
-                          disabled={!selectedBrand && !isCustomBrand}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o modelo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {selectedBrand &&
-                              carBrands
-                                .find((brand) => brand.name === selectedBrand)
-                                ?.models.map((model) => (
-                                  <SelectItem key={model} value={model}>
-                                    {model}
-                                  </SelectItem>
-                                ))}
-                            <SelectItem value="outro">Outro</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </>
+                      <Select
+                        onValueChange={(value) => {
+                          if (value === "outro") {
+                            setIsCustomModel(true);
+                            form.setValue("model", "");
+                          } else {
+                            form.setValue("model", value);
+                          }
+                        }}
+                        disabled={!selectedBrand && !isCustomBrand}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o modelo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {selectedBrand &&
+                            carBrands
+                              .find((brand) => brand.name === selectedBrand)
+                              ?.models.map((model) => (
+                                <SelectItem key={model} value={model}>
+                                  {model}
+                                </SelectItem>
+                              ))}
+                          <SelectItem value="outro">Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
                     ) : (
                       <div className="flex gap-2">
                         <Input
@@ -456,30 +451,28 @@ const CreateCar = () => {
                   <div className="space-y-2">
                     <Label htmlFor="year">Ano</Label>
                     {!isCustomYear ? (
-                      <>
-                        <Select 
-                          onValueChange={(value) => {
-                            if (value === "outro") {
-                              setIsCustomYear(true);
-                              form.setValue("year", "");
-                            } else {
-                              form.setValue("year", value);
-                            }
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o ano" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {generateYears().map((year) => (
-                              <SelectItem key={year} value={year}>
-                                {year}
-                              </SelectItem>
-                            ))}
-                            <SelectItem value="outro">Outro</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </>
+                      <Select 
+                        onValueChange={(value) => {
+                          if (value === "outro") {
+                            setIsCustomYear(true);
+                            form.setValue("year", "");
+                          } else {
+                            form.setValue("year", value);
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o ano" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {generateYears().map((year) => (
+                            <SelectItem key={year} value={year}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="outro">Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
                     ) : (
                       <div className="flex gap-2">
                         <Input
@@ -562,7 +555,7 @@ const CreateCar = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="details" className="mt-6">
+          <TabsContent value="details" className="mt-4">
             <Card>
               <CardHeader>
                 <CardTitle>Detalhes e Opcionais</CardTitle>
@@ -587,29 +580,27 @@ const CreateCar = () => {
                   <div className="space-y-2">
                     <Label htmlFor="transmission">Câmbio</Label>
                     {!isCustomTransmission ? (
-                      <>
-                        <Select 
-                          onValueChange={(value) => {
-                            if (value === "outro") {
-                              setIsCustomTransmission(true);
-                              form.setValue("transmission", "");
-                            } else {
-                              form.setValue("transmission", value);
-                            }
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o câmbio" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="manual">Manual</SelectItem>
-                            <SelectItem value="automatic">Automático</SelectItem>
-                            <SelectItem value="cvt">CVT</SelectItem>
-                            <SelectItem value="semi-automatic">Semi-automático</SelectItem>
-                            <SelectItem value="outro">Outro</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </>
+                      <Select 
+                        onValueChange={(value) => {
+                          if (value === "outro") {
+                            setIsCustomTransmission(true);
+                            form.setValue("transmission", "");
+                          } else {
+                            form.setValue("transmission", value);
+                          }
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione o câmbio" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="manual">Manual</SelectItem>
+                          <SelectItem value="automatic">Automático</SelectItem>
+                          <SelectItem value="cvt">CVT</SelectItem>
+                          <SelectItem value="semi-automatic">Semi-automático</SelectItem>
+                          <SelectItem value="outro">Outro</SelectItem>
+                        </SelectContent>
+                      </Select>
                     ) : (
                       <div className="flex gap-2">
                         <Input
@@ -693,7 +684,7 @@ const CreateCar = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="photos" className="mt-6">
+          <TabsContent value="photos" className="mt-4">
             <Card>
               <CardHeader>
                 <CardTitle>Fotos e Finalização</CardTitle>

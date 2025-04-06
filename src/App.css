@@ -102,6 +102,16 @@
   .card {
     margin-bottom: 0.75rem;
   }
+
+  /* Garantir que elementos de formulário não colidam em telas pequenas */
+  .form-group + .form-group {
+    margin-top: 1rem;
+  }
+
+  /* Ajustes para botões em interfaces de formulário */
+  button + button {
+    margin-top: 0.5rem;
+  }
 }
 
 /* Corrigir espaço para painel administrativo */
@@ -112,5 +122,35 @@
 @media (min-width: 768px) {
   .admin-content {
     padding-left: 16rem;
+  }
+}
+
+/* Evitar colisões em formulários */
+.tabs-content .card-content > * + * {
+  margin-top: 1rem;
+}
+
+/* Ajustes para ícones em dispositivos mobile */
+@media (max-width: 640px) {
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Melhorar visualização de elementos em formulários no mobile */
+@media (max-width: 768px) {
+  .tabs-list button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  label {
+    font-size: 0.875rem;
+  }
+  
+  input, select, textarea {
+    padding: 0.5rem;
+    font-size: 0.875rem;
   }
 }
