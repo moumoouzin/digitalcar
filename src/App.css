@@ -244,3 +244,30 @@
   height: auto !important;
   min-height: 3rem;
 }
+
+/* Aumentar fonte dos botões de navegação principal */
+nav ul li a {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Transição suave para hover nos botões */
+nav ul li a {
+  transition: all 0.2s ease;
+}
+
+nav ul li a:hover {
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+}
+
+@media (min-width: 768px) {
+  nav ul li {
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  nav ul li {
+    font-size: 1.25rem;
+  }
+}

@@ -14,23 +14,23 @@ export const Navigation = () => {
         <div className="flex justify-between items-center">
           <div className="hidden md:flex justify-center w-full">
             <ul className="flex space-x-6 lg:space-x-12">
-              <li className="text-sm font-semibold hover:text-white/80">
+              <li className="text-base md:text-lg font-semibold hover:text-white/80">
                 <Link to="/veiculos">Veículos</Link>
               </li>
-              <li className="text-sm font-semibold hover:text-white/80">
+              <li className="text-base md:text-lg font-semibold hover:text-white/80">
                 <Link to="/">Sobre Nós</Link>
               </li>
-              <li className="text-sm font-semibold hover:text-white/80">
+              <li className="text-base md:text-lg font-semibold hover:text-white/80">
                 <Link to="/financiamento">Financiamento</Link>
               </li>
-              <li className="text-sm font-semibold hover:text-white/80">
+              <li className="text-base md:text-lg font-semibold hover:text-white/80">
                 <Link to="/">Contato</Link>
               </li>
-              <li className="text-sm font-semibold hover:text-white/80 flex items-center">
+              <li className="text-base md:text-lg font-semibold hover:text-white/80 flex items-center">
                 <Link to="/admin/login" className="flex items-center gap-1">
                   <svg 
-                    width="16" 
-                    height="16" 
+                    width="18" 
+                    height="18" 
                     viewBox="0 0 24 24" 
                     fill="none" 
                     xmlns="http://www.w3.org/2000/svg"
@@ -75,7 +75,7 @@ export const Navigation = () => {
         {isMenuOpen && (
           <div className="md:hidden pt-3 pb-1 mt-2 border-t border-white/20">
             <ul className="grid grid-cols-2 gap-x-2 gap-y-2 py-2">
-              <li className="text-xs font-semibold">
+              <li className="text-sm font-semibold">
                 <Link to="/veiculos" 
                   onClick={() => setIsMenuOpen(false)}
                   className="block py-1.5 px-2 rounded-md hover:bg-white/10"
@@ -83,7 +83,7 @@ export const Navigation = () => {
                   Veículos
                 </Link>
               </li>
-              <li className="text-xs font-semibold">
+              <li className="text-sm font-semibold">
                 <Link to="/" 
                   onClick={() => setIsMenuOpen(false)}
                   className="block py-1.5 px-2 rounded-md hover:bg-white/10"
@@ -91,7 +91,7 @@ export const Navigation = () => {
                   Sobre Nós
                 </Link>
               </li>
-              <li className="text-xs font-semibold">
+              <li className="text-sm font-semibold">
                 <Link to="/financiamento" 
                   onClick={() => setIsMenuOpen(false)}
                   className="block py-1.5 px-2 rounded-md hover:bg-white/10"
@@ -99,7 +99,7 @@ export const Navigation = () => {
                   Financiamento
                 </Link>
               </li>
-              <li className="text-xs font-semibold">
+              <li className="text-sm font-semibold">
                 <Link to="/" 
                   onClick={() => setIsMenuOpen(false)}
                   className="block py-1.5 px-2 rounded-md hover:bg-white/10"
@@ -107,7 +107,7 @@ export const Navigation = () => {
                   Contato
                 </Link>
               </li>
-              <li className="text-xs font-semibold col-span-2">
+              <li className="text-sm font-semibold col-span-2">
                 <Link 
                   to="/admin/login" 
                   className="flex items-center gap-1 py-1.5 px-2 rounded-md hover:bg-white/10"
