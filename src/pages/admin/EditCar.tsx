@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -306,34 +305,25 @@ const EditCar = () => {
     try {
       console.log(`Starting upload for file: ${file.name}, car_id: ${carId}, isPrimary: ${isPrimary}`);
       
-      // Check if bucket exists
-      const { data: buckets } = await supabase.storage.listBuckets();
-      const bucketExists = buckets?.some(bucket => bucket.name === 'car-images');
-      
-      if (!bucketExists) {
-        console.log('Bucket car-images does not exist, creating...');
-        const { error: createBucketError } = await supabase.storage.createBucket('car-images', { public: true });
-          
-        if (createBucketError) {
-          console.error('Error creating bucket:', createBucketError);
-          throw createBucketError;
-        }
-      }
-      
       // Generate unique file name to prevent collisions
       const fileExt = file.name.split('.').pop();
       const uniqueFileName = `${carId}/${uuidv4()}.${fileExt}`;
       
       console.log(`Uploading file to path: ${uniqueFileName}`);
+      
+      // Direct upload to storage bypassing bucket creation check
       const { data, error } = await supabase.storage
         .from('car-images')
-        .upload(uniqueFileName, file);
+        .upload(uniqueFileName, file, {
+          upsert: false
+        });
 
       if (error) {
         console.error('Error uploading image:', error);
         return null;
       }
       
+      // Generate public URL for the uploaded image
       const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/${uniqueFileName}`;
       console.log(`Image uploaded successfully: ${imageUrl}`);
       
@@ -410,7 +400,7 @@ const EditCar = () => {
       if (uploadedImages.length > 0) {
         console.log(`Starting upload of ${uploadedImages.length} new images...`);
         
-        // Use Promise.all to upload all images in parallel
+        // Upload all images in parallel and include index information
         const uploadPromises = uploadedImages.map((file, index) => {
           // First new image is primary only if there are no existing images
           const makeFirstPrimary = existingImages.length === 0 && index === 0;
@@ -419,6 +409,10 @@ const EditCar = () => {
         
         const results = await Promise.all(uploadPromises);
         console.log('Image upload results:', results);
+        
+        // Clear uploaded images after successful upload
+        setUploadedImages([]);
+        setImagePreviewUrls([]);
       }
 
       toast({
