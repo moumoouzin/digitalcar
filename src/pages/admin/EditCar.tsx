@@ -21,6 +21,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
 import { Loader2Icon } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
 
 const carFormSchema = z.object({
   title: z.string().min(5, "O título precisa ter pelo menos 5 caracteres"),
@@ -90,7 +91,6 @@ const EditCar = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Novos estados para campos personalizados
   const [customBrand, setCustomBrand] = useState("");
   const [customModel, setCustomModel] = useState("");
   const [customYear, setCustomYear] = useState("");
@@ -115,7 +115,6 @@ const EditCar = () => {
     },
   });
 
-  // Carregar dados do anúncio existente
   useEffect(() => {
     if (id) {
       fetchCarDetails();
@@ -126,7 +125,6 @@ const EditCar = () => {
     try {
       setIsLoading(true);
       
-      // Buscar os detalhes do anúncio
       const { data: carData, error: carError } = await supabase
         .from('car_ads')
         .select('*')
@@ -147,7 +145,6 @@ const EditCar = () => {
         return;
       }
       
-      // Preencher o formulário com os dados existentes
       form.setValue("title", carData.title);
       form.setValue("description", carData.description);
       form.setValue("price", carData.price.toString());
@@ -155,7 +152,6 @@ const EditCar = () => {
       form.setValue("mileage", carData.mileage);
       form.setValue("whatsapp", carData.whatsapp);
       
-      // Verificar se a marca é personalizada ou padrão
       const brandExists = carBrands.some(brand => brand.name === carData.brand);
       if (brandExists) {
         setSelectedBrand(carData.brand);
@@ -165,7 +161,6 @@ const EditCar = () => {
         setCustomBrand(carData.brand);
       }
       
-      // Verificar se o modelo é personalizado ou padrão
       const modelExists = carData.brand && carBrands.find(
         brand => brand.name === carData.brand
       )?.models.includes(carData.model);
@@ -179,7 +174,6 @@ const EditCar = () => {
         form.setValue("model", carData.model);
       }
       
-      // Verificar se o ano é personalizado ou padrão
       const yearExists = generateYears().includes(carData.year);
       if (yearExists) {
         form.setValue("year", carData.year);
@@ -190,7 +184,6 @@ const EditCar = () => {
         form.setValue("year", carData.year);
       }
       
-      // Verificar se o câmbio é personalizado ou padrão
       const standardTransmissions = ["manual", "automatic", "cvt", "semi-automatic"];
       if (standardTransmissions.includes(carData.transmission)) {
         form.setValue("transmission", carData.transmission);
@@ -201,7 +194,6 @@ const EditCar = () => {
         form.setValue("transmission", carData.transmission);
       }
       
-      // Buscar features do anúncio
       const { data: featuresData, error: featuresError } = await supabase
         .from('car_features')
         .select('feature_id')
@@ -212,7 +204,6 @@ const EditCar = () => {
         setSelectedFeatures(featureIds);
       }
       
-      // Buscar imagens do anúncio
       const { data: imagesData, error: imagesError } = await supabase
         .from('car_images')
         .select('id, image_url')
@@ -313,7 +304,7 @@ const EditCar = () => {
   const uploadImageToSupabase = async (file: File, carId: string, isPrimary: boolean = false): Promise<string | null> => {
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${carId}/${Date.now()}.${fileExt}`;
+      const fileName = `${carId}/${uuidv4()}.${fileExt}`;
       
       const { data, error } = await supabase.storage
         .from('car-images')
@@ -374,14 +365,11 @@ const EditCar = () => {
         throw error;
       }
 
-      // Atualizar features
-      // Primeiro, removemos todas as features existentes
       await supabase
         .from('car_features')
         .delete()
         .eq('car_id', id);
         
-      // Depois, inserimos as novas features selecionadas
       if (selectedFeatures.length > 0) {
         const featureObjects = selectedFeatures.map(featureId => ({
           car_id: id,
@@ -397,7 +385,6 @@ const EditCar = () => {
         }
       }
 
-      // Upload de novas imagens, se houver
       if (uploadedImages.length > 0) {
         const uploadPromises = uploadedImages.map(file => 
           uploadImageToSupabase(file, id)
@@ -948,4 +935,4 @@ const EditCar = () => {
   );
 };
 
-export default EditCar; 
+export default EditCar;

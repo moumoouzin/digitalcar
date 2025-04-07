@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -156,6 +157,7 @@ const CreateCar = () => {
     try {
       console.log('Iniciando upload para car_id:', carId, 'isPrimary:', isPrimary);
       
+      // Check if bucket exists and create if needed
       const { data: buckets } = await supabase
         .storage
         .listBuckets();
@@ -174,6 +176,7 @@ const CreateCar = () => {
         }
       }
       
+      // Generate unique file name to prevent collisions
       const fileExt = file.name.split('.').pop();
       const fileName = `${carId}/${uuidv4()}.${fileExt}`;
       
@@ -184,7 +187,7 @@ const CreateCar = () => {
 
       if (error) {
         console.error('Erro ao fazer upload da imagem:', error);
-        return null;
+        throw error;
       }
 
       console.log('Upload concluído com sucesso:', data);
@@ -192,6 +195,7 @@ const CreateCar = () => {
       const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/${fileName}`;
       console.log('URL da imagem:', imageUrl);
       
+      // Save image record to database
       const { error: insertError } = await supabase
         .from('car_images')
         .insert({
@@ -202,13 +206,13 @@ const CreateCar = () => {
         
       if (insertError) {
         console.error('Erro ao registrar imagem no banco de dados:', insertError);
-        return null;
+        throw insertError;
       }
 
       return imageUrl;
     } catch (error) {
       console.error('Erro ao processar upload da imagem:', error);
-      return null;
+      throw error; // Re-throw the error to handle it in the calling function
     }
   };
 
@@ -233,6 +237,7 @@ const CreateCar = () => {
 
       console.log("Dados do carro:", newCar);
 
+      // Insert car data and get the new ID
       const { data: carData, error } = await supabase
         .from('car_ads')
         .insert(newCar)
@@ -251,6 +256,7 @@ const CreateCar = () => {
       const carId = carData.id;
       console.log("Anúncio criado com ID:", carId);
 
+      // Insert selected features
       if (selectedFeatures.length > 0) {
         const featureObjects = selectedFeatures.map(featureId => ({
           car_id: carId,
@@ -264,16 +270,23 @@ const CreateCar = () => {
 
         if (featuresError) {
           console.error('Erro ao salvar características:', featuresError);
+          // Continue even if features fail
         }
       }
 
+      // Upload images
       if (uploadedImages.length > 0) {
+        console.log(`Iniciando upload de ${uploadedImages.length} imagens...`);
         const uploadPromises = uploadedImages.map((file, index) => 
-          uploadImageToSupabase(file, carId, index === 0)
+          uploadImageToSupabase(file, carId, index === 0) // First image is primary
+            .catch(err => {
+              console.error(`Erro no upload da imagem ${index}:`, err);
+              return null; // Return null for failed uploads but don't break the process
+            })
         );
 
-        await Promise.all(uploadPromises);
-        console.log("Upload de imagens concluído");
+        const results = await Promise.all(uploadPromises);
+        console.log("Upload de imagens concluído com resultados:", results);
       } else {
         console.log("Nenhuma imagem para fazer upload");
       }
