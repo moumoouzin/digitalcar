@@ -114,6 +114,7 @@ const EditCar = () => {
     
     try {
       setIsSubmitting(true);
+      console.log("🔄 Iniciando atualização do anúncio");
       
       const updatedCar = {
         title: data.title,
@@ -129,14 +130,19 @@ const EditCar = () => {
         is_featured: isFeatured
       };
 
+      console.log("📋 Dados do anúncio para atualização:", updatedCar);
+
       const { error } = await supabase
         .from('car_ads')
         .update(updatedCar)
         .eq('id', id);
 
       if (error) {
+        console.error("❌ Erro ao atualizar dados do anúncio:", error);
         throw error;
       }
+      
+      console.log("✅ Dados do anúncio atualizados com sucesso");
 
       await supabase
         .from('car_features')
@@ -154,7 +160,9 @@ const EditCar = () => {
           .insert(featureObjects);
 
         if (featuresError) {
-          console.error('Error saving features:', featuresError);
+          console.error('❌ Erro ao salvar recursos:', featuresError);
+        } else {
+          console.log(`✅ ${selectedFeatures.length} recursos salvos com sucesso`);
         }
       }
 
@@ -176,7 +184,7 @@ const EditCar = () => {
 
       navigate("/admin/painel/cars");
     } catch (error: any) {
-      console.error('Erro ao atualizar anúncio:', error);
+      console.error('❌ Erro ao atualizar anúncio:', error);
       toast({
         title: "Erro ao atualizar anúncio",
         description: error.message || "Ocorreu um erro inesperado.",

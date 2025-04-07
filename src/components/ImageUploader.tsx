@@ -59,6 +59,10 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     if (!e.target.files?.length) return;
     
     const arquivos = Array.from(e.target.files);
+    console.log(`📂 ${arquivos.length} arquivo(s) selecionado(s):`);
+    arquivos.forEach((file, i) => {
+      console.log(`  ${i+1}) ${file.name} - ${Math.round(file.size/1024)}KB - ${file.type}`);
+    });
     
     // Verificar limite de imagens
     if (imagens.length + arquivos.length > maxImagens) {
@@ -73,13 +77,16 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     // Criar previews para os arquivos selecionados
     const novasImagens: ImagemPreview[] = arquivos.map(file => ({
       url: URL.createObjectURL(file),
-      file,
+      file: file, // Garantir que o arquivo está associado
       isUploading: false
     }));
+    
+    console.log(`🖼️ ${novasImagens.length} previews de imagem criados`);
 
     // Atualizar estado
     const imagensAtualizadas = [...imagens, ...novasImagens];
     setImagens(imagensAtualizadas);
+    console.log(`📊 Estado atualizado: ${imagensAtualizadas.length} imagens totais (${novasImagens.length} novas)`);
     
     // Notificar mudança
     if (onChange) {
@@ -160,7 +167,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     setIsUploading(true);
     const imagensPendentes = imagens.filter(img => img.file);
     
+    console.log("🔎 Verificando imagens pendentes:", imagensPendentes.length); 
+    console.log("📋 Total de imagens em estado:", imagens.length);
+    
     if (imagensPendentes.length === 0) {
+      console.log("⚠️ Nenhuma imagem pendente para upload");
       setIsUploading(false);
       return [];
     }
@@ -184,7 +195,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     for (let i = 0; i < imagensPendentes.length; i++) {
       const imagem = imagensPendentes[i];
       
-      if (!imagem.file) continue;
+      if (!imagem.file) {
+        console.log(`⚠️ Imagem ${i} não possui arquivo`, imagem);
+        continue;
+      }
+      
+      console.log(`⬆️ Enviando imagem ${i+1}/${imagensPendentes.length}: ${imagem.file.name}`);
       
       try {
         // Define se essa imagem será primária
@@ -256,6 +272,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
     
     setIsUploading(false);
+    console.log(`✅ Upload concluído: ${urlsUpload.length} imagens enviadas`);
     
     // Notificar conclusão
     if (onUploadComplete) {

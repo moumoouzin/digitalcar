@@ -121,13 +121,23 @@ const TestUpload: React.FC = () => {
     try {
       // Criar arquivo para teste
       const file = await createTestImage();
-      addLog(`📂 Arquivo de teste criado: ${file.name} (${file.size} bytes)`);
+      addLog(`📂 Arquivo de teste criado: ${file.name} (${file.size} bytes) - Tipo: ${file.type}`);
       
       // Gerar um nome de arquivo único
       const fileName = `teste-direto-${uuidv4()}.png`;
       addLog(`📝 Nome gerado para o arquivo: ${fileName}`);
       
+      // Verificar se o bucket existe
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      if (bucketsError) {
+        addLog(`❌ Erro ao verificar buckets: ${bucketsError.message}`);
+      } else {
+        const hasBucket = buckets.some(b => b.name === 'car-images');
+        addLog(`ℹ️ Bucket 'car-images' ${hasBucket ? 'encontrado' : 'NÃO encontrado'}`);
+      }
+      
       // Upload para o storage
+      addLog(`⬆️ Iniciando upload do arquivo...`);
       const { data, error } = await supabase.storage
         .from('car-images')
         .upload(fileName, file, {
@@ -137,6 +147,8 @@ const TestUpload: React.FC = () => {
         
       if (error) {
         addLog(`❌ Erro no upload: ${error.message}`);
+        addLog(`❓ Informações adicionais de erro: ${JSON.stringify(error)}`);
+        
         if (error.message.includes('permission') || error.message.includes('not authorized')) {
           addLog(`⚠️ Parece ser um problema de permissão. Verifique as políticas do bucket.`);
         }
@@ -148,9 +160,10 @@ const TestUpload: React.FC = () => {
         
         // Verificar se a URL é acessível
         try {
+          addLog(`🔍 Verificando se a URL é acessível...`);
           const response = await fetch(publicUrl, { method: 'HEAD' });
           if (response.ok) {
-            addLog(`✅ URL pública está acessível!`);
+            addLog(`✅ URL pública está acessível! Status: ${response.status}`);
           } else {
             addLog(`⚠️ URL pública retornou status ${response.status}`);
           }
@@ -162,6 +175,7 @@ const TestUpload: React.FC = () => {
       }
     } catch (error: any) {
       addLog(`❌ Exceção no upload: ${error.message}`);
+      addLog(`🔍 Stack de erro: ${error.stack}`);
       setResult('Erro no upload direto. Verifique os logs.');
     } finally {
       setLoading(false);
