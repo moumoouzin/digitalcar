@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 
 export const carFormSchema = z.object({
@@ -27,7 +26,8 @@ export type CarBrand = {
 
 export type CarImage = {
   id: string;
-  url: string;
+  image_url: string;
+  is_primary?: boolean;
 };
 
 export const carBrands: CarBrand[] = [

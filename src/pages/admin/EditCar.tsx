@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -166,7 +165,10 @@ const EditCar = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const files = Array.from(e.target.files);
-      if (files.length + uploadedImages.length + existingImages.length > 10) {
+      
+      // Verificar limite total de imagens (existentes + já upadas + novas)
+      const totalImages = existingImages.length + uploadedImages.length + files.length;
+      if (totalImages > 10) {
         toast({
           title: "Limite de imagens excedido",
           description: "Você pode ter no máximo 10 imagens por anúncio.",
@@ -175,11 +177,27 @@ const EditCar = () => {
         return;
       }
 
-      const newImages = [...uploadedImages, ...files];
-      setUploadedImages(newImages);
+      // Verificar duplicação por nome de arquivo
+      const existingFileNames = new Set([
+        ...existingImages.map(img => img.image_url.split('/').pop()),
+        ...uploadedImages.map(file => file.name)
+      ]);
 
-      const newImagePreviews = files.map((file) => URL.createObjectURL(file));
-      setImagePreviewUrls([...imagePreviewUrls, ...newImagePreviews]);
+      const newFiles = files.filter(file => !existingFileNames.has(file.name));
+
+      if (newFiles.length !== files.length) {
+        toast({
+          title: "Arquivos duplicados ignorados",
+          description: "Algumas imagens foram ignoradas por já existirem no anúncio.",
+          variant: "default",
+        });
+      }
+
+      if (newFiles.length > 0) {
+        setUploadedImages(prev => [...prev, ...newFiles]);
+        const newImagePreviews = newFiles.map((file) => URL.createObjectURL(file));
+        setImagePreviewUrls(prev => [...prev, ...newImagePreviews]);
+      }
     }
   };
 

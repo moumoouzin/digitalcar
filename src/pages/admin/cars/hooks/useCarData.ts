@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CarFormValues, carBrands, generateYears } from "../types";
+import { CarFormValues, carBrands, generateYears, CarImage } from "../types";
 import { UseFormSetValue } from "react-hook-form";
 
 export const useCarData = (id: string | undefined, setValue: UseFormSetValue<CarFormValues>) => {
@@ -12,7 +11,7 @@ export const useCarData = (id: string | undefined, setValue: UseFormSetValue<Car
   const [isLoading, setIsLoading] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
-  const [existingImages, setExistingImages] = useState<Array<{id: string, url: string}>>([]);
+  const [existingImages, setExistingImages] = useState<CarImage[]>([]);
   const [isFeatured, setIsFeatured] = useState(false);
   
   const [customBrand, setCustomBrand] = useState("");
@@ -113,15 +112,11 @@ export const useCarData = (id: string | undefined, setValue: UseFormSetValue<Car
       
       const { data: imagesData, error: imagesError } = await supabase
         .from('car_images')
-        .select('id, image_url')
+        .select('id, image_url, is_primary')
         .eq('car_id', id);
         
       if (!imagesError && imagesData) {
-        const images = imagesData.map(img => ({
-          id: img.id,
-          url: img.image_url
-        }));
-        setExistingImages(images);
+        setExistingImages(imagesData);
       }
       
     } catch (error: any) {
@@ -161,7 +156,7 @@ export const useCarData = (id: string | undefined, setValue: UseFormSetValue<Car
     setCustomTransmission,
     isCustomBrand,
     setIsCustomBrand,
-    isCustomModel, 
+    isCustomModel,
     setIsCustomModel,
     isCustomYear,
     setIsCustomYear,
@@ -170,4 +165,4 @@ export const useCarData = (id: string | undefined, setValue: UseFormSetValue<Car
     isFeatured,
     setIsFeatured,
   };
-};
+}; 

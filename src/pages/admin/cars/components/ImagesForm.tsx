@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -81,7 +80,7 @@ export const ImagesForm: React.FC<ImagesFormProps> = ({
                 {existingImages.map((img, index) => (
                   <div key={img.id} className="relative group">
                     <img
-                      src={img.url}
+                      src={img.image_url}
                       alt={`Imagem ${index + 1}`}
                       className="h-24 w-full object-cover rounded-md"
                     />

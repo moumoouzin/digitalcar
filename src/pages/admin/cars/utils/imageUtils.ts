@@ -1,4 +1,3 @@
-
 import { v4 as uuidv4 } from "uuid";
 import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -8,26 +7,61 @@ export const useImageHandling = () => {
 
   const uploadImageToSupabase = async (file: File, carId: string, isPrimary: boolean = false): Promise<string | null> => {
     try {
-      // Generate unique file name to prevent collisions
+      // Verificar se o bucket existe
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.some(bucket => bucket.name === 'car-images');
+      
+      if (!bucketExists) {
+        const { error: createBucketError } = await supabase
+          .storage
+          .createBucket('car-images', { public: true });
+          
+        if (createBucketError) {
+          throw createBucketError;
+        }
+      }
+
+      // Gerar nome único para o arquivo
       const fileExt = file.name.split('.').pop();
       const uniqueFileName = `${carId}/${uuidv4()}.${fileExt}`;
       
-      // Direct upload to storage bypassing bucket creation check
+      // Upload da imagem
       const { data, error } = await supabase.storage
         .from('car-images')
         .upload(uniqueFileName, file, {
-          upsert: false
+          upsert: true // Permitir substituição se arquivo existir
         });
 
       if (error) {
-        console.error('Error uploading image:', error);
-        return null;
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('Upload falhou - nenhum dado retornado');
       }
       
-      // Generate public URL for the uploaded image
+      // Gerar URL pública
       const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/${uniqueFileName}`;
       
-      // Save image record to database
+      // Verificar se já existe uma imagem primária
+      if (isPrimary) {
+        const { data: existingPrimary } = await supabase
+          .from('car_images')
+          .select('id')
+          .eq('car_id', carId)
+          .eq('is_primary', true)
+          .single();
+
+        if (existingPrimary) {
+          // Atualizar imagem existente para não ser mais primária
+          await supabase
+            .from('car_images')
+            .update({ is_primary: false })
+            .eq('id', existingPrimary.id);
+        }
+      }
+
+      // Salvar registro da imagem
       const { error: insertError } = await supabase
         .from('car_images')
         .insert({
@@ -37,13 +71,17 @@ export const useImageHandling = () => {
         });
         
       if (insertError) {
-        console.error('Error registering image in database:', insertError);
-        return null;
+        throw insertError;
       }
 
       return imageUrl;
-    } catch (error) {
-      console.error('Error processing image upload:', error);
+    } catch (error: any) {
+      console.error('Erro no upload da imagem:', error);
+      toast({
+        title: "Erro no upload da imagem",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive",
+      });
       return null;
     }
   };
