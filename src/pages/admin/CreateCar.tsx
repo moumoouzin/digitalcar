@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +21,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
+import { useImageHandling } from "./cars/utils/imageUtils";
 
 const carFormSchema = z.object({
   title: z.string().min(5, "O título precisa ter pelo menos 5 caracteres"),
@@ -81,6 +81,7 @@ const generateYears = () => {
 const CreateCar = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { uploadImageToSupabase } = useImageHandling();
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
@@ -151,69 +152,6 @@ const CreateCar = () => {
         ? current.filter((id) => id !== featureId)
         : [...current, featureId]
     );
-  };
-
-  const uploadImageToSupabase = async (file: File, carId: string, isPrimary: boolean = false): Promise<string | null> => {
-    try {
-      console.log(`Starting upload for file: ${file.name}, car_id: ${carId}, isPrimary: ${isPrimary}`);
-      
-      // Check if bucket exists and create if needed
-      const { data: buckets } = await supabase
-        .storage
-        .listBuckets();
-      
-      const bucketExists = buckets?.some(bucket => bucket.name === 'car-images');
-      
-      if (!bucketExists) {
-        console.log('Bucket car-images does not exist, creating...');
-        const { error: createBucketError } = await supabase
-          .storage
-          .createBucket('car-images', { public: true });
-          
-        if (createBucketError) {
-          console.error('Error creating bucket:', createBucketError);
-          throw createBucketError;
-        }
-      }
-      
-      // Generate unique file name to prevent collisions
-      const fileExt = file.name.split('.').pop();
-      const uniqueFileName = `${carId}/${uuidv4()}.${fileExt}`;
-      
-      console.log(`Uploading file to path: ${uniqueFileName}`);
-      const { data, error } = await supabase.storage
-        .from('car-images')
-        .upload(uniqueFileName, file);
-
-      if (error) {
-        console.error('Error uploading image:', error);
-        throw error;
-      }
-
-      console.log('Upload completed successfully:', data);
-      
-      const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/${uniqueFileName}`;
-      console.log('Image URL:', imageUrl);
-      
-      // Save image record to database
-      const { error: insertError } = await supabase
-        .from('car_images')
-        .insert({
-          car_id: carId,
-          image_url: imageUrl,
-          is_primary: isPrimary
-        });
-        
-      if (insertError) {
-        console.error('Error registering image in database:', insertError);
-        throw insertError;
-      }
-
-      return imageUrl;
-    } catch (error) {
-      console.error('Error processing image upload:', error);
-      throw error; 
-    }
   };
 
   const onSubmit = async (data: CarFormValues) => {
