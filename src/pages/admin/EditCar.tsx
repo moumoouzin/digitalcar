@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, FormProvider } from "react-hook-form";
@@ -21,6 +21,9 @@ import { ImagesForm } from "./cars/components/ImagesForm";
 import { useCarData } from "./cars/hooks/useCarData";
 import { useImageHandling } from "./cars/utils/imageUtils";
 import { carFormSchema, CarFormValues } from "./cars/types";
+import { useImageUploader } from "@/hooks/useImageUploader";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 const EditCar = () => {
   const navigate = useNavigate();
@@ -28,9 +31,9 @@ const EditCar = () => {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("info");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
-  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
-  const { uploadImageToSupabase } = useImageHandling();
+  const [existingImages, setExistingImages] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { ImageUploaderComponent, uploadImages } = useImageUploader();
 
   const form = useForm<CarFormValues>({
     resolver: zodResolver(carFormSchema),
@@ -48,13 +51,10 @@ const EditCar = () => {
   });
 
   const { 
-    isLoading,
     selectedBrand,
     setSelectedBrand,
     selectedFeatures,
     setSelectedFeatures,
-    existingImages,
-    setExistingImages,
     customBrand,
     setCustomBrand,
     customModel,
@@ -74,6 +74,40 @@ const EditCar = () => {
     isFeatured,
     setIsFeatured
   } = useCarData(id, form.setValue);
+
+  useEffect(() => {
+    const fetchCarData = async () => {
+      try {
+        setIsLoading(true);
+        
+        // Buscar imagens existentes
+        const { data: carImages, error: imagesError } = await supabase
+          .from('car_images')
+          .select('*')
+          .eq('car_id', id);
+          
+        if (imagesError) {
+          console.error('Erro ao buscar imagens:', imagesError);
+        } else {
+          console.log("Imagens carregadas:", carImages);
+          setExistingImages(carImages || []);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados:', error);
+        toast({
+          title: "Erro ao carregar dados",
+          description: "Não foi possível carregar os dados do anúncio.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    if (id) {
+      fetchCarData();
+    }
+  }, [id, toast]);
 
   const onSubmit = async (data: CarFormValues) => {
     if (!id) return;
@@ -125,22 +159,13 @@ const EditCar = () => {
       }
 
       // Process uploaded images
-      if (uploadedImages.length > 0) {
-        console.log(`Starting upload of ${uploadedImages.length} new images...`);
-        
-        // Upload all images in parallel and include index information
-        const uploadPromises = uploadedImages.map((file, index) => {
-          // First new image is primary only if there are no existing images
-          const makeFirstPrimary = existingImages.length === 0 && index === 0;
-          return uploadImageToSupabase(file, id, makeFirstPrimary);
-        });
-        
-        const results = await Promise.all(uploadPromises);
-        console.log('Image upload results:', results);
-        
-        // Clear uploaded images after successful upload
-        setUploadedImages([]);
-        setImagePreviewUrls([]);
+      try {
+        console.log("📸 Iniciando upload de imagens...");
+        const resultadoUpload = await uploadImages(id);
+        console.log(`✅ Upload de imagens concluído: ${resultadoUpload.length} imagens enviadas`);
+      } catch (uploadError) {
+        console.error("❌ Erro durante upload de imagens:", uploadError);
+        // Continua mesmo com erro no upload
       }
 
       toast({
@@ -159,45 +184,6 @@ const EditCar = () => {
       });
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      
-      // Verificar limite total de imagens (existentes + já upadas + novas)
-      const totalImages = existingImages.length + uploadedImages.length + files.length;
-      if (totalImages > 10) {
-        toast({
-          title: "Limite de imagens excedido",
-          description: "Você pode ter no máximo 10 imagens por anúncio.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Verificar duplicação por nome de arquivo
-      const existingFileNames = new Set([
-        ...existingImages.map(img => img.image_url.split('/').pop()),
-        ...uploadedImages.map(file => file.name)
-      ]);
-
-      const newFiles = files.filter(file => !existingFileNames.has(file.name));
-
-      if (newFiles.length !== files.length) {
-        toast({
-          title: "Arquivos duplicados ignorados",
-          description: "Algumas imagens foram ignoradas por já existirem no anúncio.",
-          variant: "default",
-        });
-      }
-
-      if (newFiles.length > 0) {
-        setUploadedImages(prev => [...prev, ...newFiles]);
-        const newImagePreviews = newFiles.map((file) => URL.createObjectURL(file));
-        setImagePreviewUrls(prev => [...prev, ...newImagePreviews]);
-      }
     }
   };
 
@@ -288,18 +274,48 @@ const EditCar = () => {
                 <CardHeader>
                   <CardTitle>Fotos e Finalização</CardTitle>
                   <CardDescription>
-                    Edite as fotos do veículo e revise as informações antes de atualizar.
+                    Adicione ou remova fotos do veículo.
                   </CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ImagesForm
-                    existingImages={existingImages}
-                    setExistingImages={setExistingImages}
-                    onPrevious={() => setActiveTab("details")}
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    isSubmitting={isSubmitting}
-                  />
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <Label>Fotos do Veículo</Label>
+                    <ImageUploaderComponent 
+                      carroId={id} 
+                      imagensExistentes={existingImages}
+                      maxImagens={10}
+                      disabled={isSubmitting} 
+                    />
+                  </div>
+                  
+                  <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md">
+                    <p className="text-sm text-yellow-800">
+                      <strong>Atenção:</strong> Revise todas as informações antes de salvar as alterações.
+                    </p>
+                  </div>
                 </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setActiveTab("details")}
+                  >
+                    Voltar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                        Salvando...
+                      </>
+                    ) : (
+                      "Salvar Alterações"
+                    )}
+                  </Button>
+                </CardFooter>
               </Card>
             </TabsContent>
           </Tabs>
