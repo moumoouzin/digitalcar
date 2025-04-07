@@ -15,6 +15,8 @@ type DetailsFormProps = {
   setIsCustomTransmission: (isCustom: boolean) => void;
   selectedFeatures: string[];
   setSelectedFeatures: (features: string[]) => void;
+  isFeatured: boolean;
+  setIsFeatured: (isFeatured: boolean) => void;
   onPrevious: () => void;
   onNext: () => void;
 };
@@ -26,6 +28,8 @@ export const DetailsForm: React.FC<DetailsFormProps> = ({
   setIsCustomTransmission,
   selectedFeatures,
   setSelectedFeatures,
+  isFeatured,
+  setIsFeatured,
   onPrevious,
   onNext,
 }) => {
@@ -145,6 +149,25 @@ export const DetailsForm: React.FC<DetailsFormProps> = ({
             </div>
           ))}
         </div>
+      </div>
+      
+      <div className="border-t pt-4">
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="featured"
+            checked={isFeatured}
+            onCheckedChange={(checked) => setIsFeatured(checked as boolean)}
+          />
+          <label
+            htmlFor="featured"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Exibir como destaque na página inicial
+          </label>
+        </div>
+        <p className="text-xs text-muted-foreground mt-1">
+          Marque esta opção para exibir este veículo na seção de destaques da página inicial.
+        </p>
       </div>
       
       <div className="flex justify-between">

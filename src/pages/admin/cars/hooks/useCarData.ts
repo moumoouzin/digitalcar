@@ -13,6 +13,7 @@ export const useCarData = (id: string | undefined, setValue: UseFormSetValue<Car
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<Array<{id: string, url: string}>>([]);
+  const [isFeatured, setIsFeatured] = useState(false);
   
   const [customBrand, setCustomBrand] = useState("");
   const [customModel, setCustomModel] = useState("");
@@ -56,6 +57,7 @@ export const useCarData = (id: string | undefined, setValue: UseFormSetValue<Car
       setValue("color", carData.color);
       setValue("mileage", carData.mileage);
       setValue("whatsapp", carData.whatsapp);
+      setIsFeatured(carData.is_featured || false);
       
       const brandExists = carBrands.some(brand => brand.name === carData.brand);
       if (brandExists) {
@@ -165,5 +167,7 @@ export const useCarData = (id: string | undefined, setValue: UseFormSetValue<Car
     setIsCustomYear,
     isCustomTransmission,
     setIsCustomTransmission,
+    isFeatured,
+    setIsFeatured,
   };
 };

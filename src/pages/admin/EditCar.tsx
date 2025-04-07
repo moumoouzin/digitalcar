@@ -72,6 +72,8 @@ const EditCar = () => {
     setIsCustomYear,
     isCustomTransmission,
     setIsCustomTransmission,
+    isFeatured,
+    setIsFeatured
   } = useCarData(id, form.setValue);
 
   const onSubmit = async (data: CarFormValues) => {
@@ -91,6 +93,7 @@ const EditCar = () => {
         mileage: data.mileage,
         description: data.description,
         whatsapp: data.whatsapp,
+        is_featured: isFeatured
       };
 
       const { error } = await supabase
@@ -253,6 +256,8 @@ const EditCar = () => {
                     setIsCustomTransmission={setIsCustomTransmission}
                     selectedFeatures={selectedFeatures}
                     setSelectedFeatures={setSelectedFeatures}
+                    isFeatured={isFeatured}
+                    setIsFeatured={setIsFeatured}
                     onPrevious={() => setActiveTab("info")}
                     onNext={() => setActiveTab("photos")}
                   />
