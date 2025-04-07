@@ -32,11 +32,12 @@ export const DetailsForm: React.FC<DetailsFormProps> = ({
   const { register, formState, setValue, getValues } = useFormContext<CarFormValues>();
 
   const toggleFeature = (featureId: string) => {
-    setSelectedFeatures((current) =>
-      current.includes(featureId)
-        ? current.filter((id) => id !== featureId)
-        : [...current, featureId]
-    );
+    // Instead of using a callback function, create a new array directly
+    const updatedFeatures = selectedFeatures.includes(featureId)
+      ? selectedFeatures.filter((id) => id !== featureId)
+      : [...selectedFeatures, featureId];
+    
+    setSelectedFeatures(updatedFeatures);
   };
 
   return (
