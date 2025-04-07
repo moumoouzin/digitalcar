@@ -155,7 +155,7 @@ const CreateCar = () => {
 
   const uploadImageToSupabase = async (file: File, carId: string, isPrimary: boolean = false): Promise<string | null> => {
     try {
-      console.log('Iniciando upload para car_id:', carId, 'isPrimary:', isPrimary);
+      console.log(`Starting upload for file: ${file.name}, car_id: ${carId}, isPrimary: ${isPrimary}`);
       
       // Check if bucket exists and create if needed
       const { data: buckets } = await supabase
@@ -165,35 +165,35 @@ const CreateCar = () => {
       const bucketExists = buckets?.some(bucket => bucket.name === 'car-images');
       
       if (!bucketExists) {
-        console.log('Bucket car-images não existe, criando...');
+        console.log('Bucket car-images does not exist, creating...');
         const { error: createBucketError } = await supabase
           .storage
           .createBucket('car-images', { public: true });
           
         if (createBucketError) {
-          console.error('Erro ao criar bucket:', createBucketError);
+          console.error('Error creating bucket:', createBucketError);
           throw createBucketError;
         }
       }
       
       // Generate unique file name to prevent collisions
       const fileExt = file.name.split('.').pop();
-      const fileName = `${carId}/${uuidv4()}.${fileExt}`;
+      const uniqueFileName = `${carId}/${uuidv4()}.${fileExt}`;
       
-      console.log('Fazendo upload do arquivo:', fileName);
+      console.log(`Uploading file to path: ${uniqueFileName}`);
       const { data, error } = await supabase.storage
         .from('car-images')
-        .upload(fileName, file);
+        .upload(uniqueFileName, file);
 
       if (error) {
-        console.error('Erro ao fazer upload da imagem:', error);
+        console.error('Error uploading image:', error);
         throw error;
       }
 
-      console.log('Upload concluído com sucesso:', data);
+      console.log('Upload completed successfully:', data);
       
-      const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/${fileName}`;
-      console.log('URL da imagem:', imageUrl);
+      const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/${uniqueFileName}`;
+      console.log('Image URL:', imageUrl);
       
       // Save image record to database
       const { error: insertError } = await supabase
@@ -205,19 +205,19 @@ const CreateCar = () => {
         });
         
       if (insertError) {
-        console.error('Erro ao registrar imagem no banco de dados:', insertError);
+        console.error('Error registering image in database:', insertError);
         throw insertError;
       }
 
       return imageUrl;
     } catch (error) {
-      console.error('Erro ao processar upload da imagem:', error);
-      throw error; // Re-throw the error to handle it in the calling function
+      console.error('Error processing image upload:', error);
+      throw error; 
     }
   };
 
   const onSubmit = async (data: CarFormValues) => {
-    console.log("Iniciando envio do formulário...");
+    console.log("Starting form submission...");
     try {
       setIsSubmitting(true);
       
@@ -235,7 +235,7 @@ const CreateCar = () => {
         status: "pending", 
       };
 
-      console.log("Dados do carro:", newCar);
+      console.log("Car data:", newCar);
 
       // Insert car data and get the new ID
       const { data: carData, error } = await supabase
@@ -245,16 +245,16 @@ const CreateCar = () => {
         .single();
 
       if (error) {
-        console.error("Erro ao inserir anúncio:", error);
+        console.error("Error inserting ad:", error);
         throw error;
       }
 
       if (!carData) {
-        throw new Error("Não foi possível obter o ID do anúncio criado");
+        throw new Error("Could not get ID of created ad");
       }
 
       const carId = carData.id;
-      console.log("Anúncio criado com ID:", carId);
+      console.log("Ad created with ID:", carId);
 
       // Insert selected features
       if (selectedFeatures.length > 0) {
@@ -263,32 +263,32 @@ const CreateCar = () => {
           feature_id: featureId
         }));
 
-        console.log("Salvando features:", featureObjects);
+        console.log("Saving features:", featureObjects);
         const { error: featuresError } = await supabase
           .from('car_features')
           .insert(featureObjects);
 
         if (featuresError) {
-          console.error('Erro ao salvar características:', featuresError);
-          // Continue even if features fail
+          console.error('Error saving features:', featuresError);
         }
       }
 
       // Upload images
       if (uploadedImages.length > 0) {
-        console.log(`Iniciando upload de ${uploadedImages.length} imagens...`);
+        console.log(`Starting upload of ${uploadedImages.length} images...`);
         const uploadPromises = uploadedImages.map((file, index) => 
           uploadImageToSupabase(file, carId, index === 0) // First image is primary
-            .catch(err => {
-              console.error(`Erro no upload da imagem ${index}:`, err);
-              return null; // Return null for failed uploads but don't break the process
-            })
         );
 
-        const results = await Promise.all(uploadPromises);
-        console.log("Upload de imagens concluído com resultados:", results);
+        try {
+          const results = await Promise.all(uploadPromises);
+          console.log("Image upload results:", results);
+        } catch (uploadError) {
+          console.error("Error during image uploads:", uploadError);
+          // Continue anyway to show success message
+        }
       } else {
-        console.log("Nenhuma imagem para fazer upload");
+        console.log("No images to upload");
       }
 
       toast({
@@ -299,7 +299,7 @@ const CreateCar = () => {
 
       navigate("/admin/painel/cars");
     } catch (error: any) {
-      console.error('Erro ao criar anúncio:', error);
+      console.error('Error creating ad:', error);
       toast({
         title: "Erro ao criar anúncio",
         description: error.message || "Ocorreu um erro inesperado.",

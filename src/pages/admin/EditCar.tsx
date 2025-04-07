@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -303,20 +304,40 @@ const EditCar = () => {
 
   const uploadImageToSupabase = async (file: File, carId: string, isPrimary: boolean = false): Promise<string | null> => {
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${carId}/${uuidv4()}.${fileExt}`;
+      console.log(`Starting upload for file: ${file.name}, car_id: ${carId}, isPrimary: ${isPrimary}`);
       
+      // Check if bucket exists
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const bucketExists = buckets?.some(bucket => bucket.name === 'car-images');
+      
+      if (!bucketExists) {
+        console.log('Bucket car-images does not exist, creating...');
+        const { error: createBucketError } = await supabase.storage.createBucket('car-images', { public: true });
+          
+        if (createBucketError) {
+          console.error('Error creating bucket:', createBucketError);
+          throw createBucketError;
+        }
+      }
+      
+      // Generate unique file name to prevent collisions
+      const fileExt = file.name.split('.').pop();
+      const uniqueFileName = `${carId}/${uuidv4()}.${fileExt}`;
+      
+      console.log(`Uploading file to path: ${uniqueFileName}`);
       const { data, error } = await supabase.storage
         .from('car-images')
-        .upload(fileName, file);
+        .upload(uniqueFileName, file);
 
       if (error) {
-        console.error('Erro ao fazer upload da imagem:', error);
+        console.error('Error uploading image:', error);
         return null;
       }
       
-      const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/${fileName}`;
+      const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/${uniqueFileName}`;
+      console.log(`Image uploaded successfully: ${imageUrl}`);
       
+      // Save image record to database
       const { error: insertError } = await supabase
         .from('car_images')
         .insert({
@@ -326,13 +347,13 @@ const EditCar = () => {
         });
         
       if (insertError) {
-        console.error('Erro ao registrar imagem no banco de dados:', insertError);
+        console.error('Error registering image in database:', insertError);
         return null;
       }
 
       return imageUrl;
     } catch (error) {
-      console.error('Erro ao processar upload da imagem:', error);
+      console.error('Error processing image upload:', error);
       return null;
     }
   };
@@ -381,16 +402,23 @@ const EditCar = () => {
           .insert(featureObjects);
 
         if (featuresError) {
-          console.error('Erro ao salvar características:', featuresError);
+          console.error('Error saving features:', featuresError);
         }
       }
 
+      // Process uploaded images
       if (uploadedImages.length > 0) {
-        const uploadPromises = uploadedImages.map(file => 
-          uploadImageToSupabase(file, id)
-        );
-
-        await Promise.all(uploadPromises);
+        console.log(`Starting upload of ${uploadedImages.length} new images...`);
+        
+        // Use Promise.all to upload all images in parallel
+        const uploadPromises = uploadedImages.map((file, index) => {
+          // First new image is primary only if there are no existing images
+          const makeFirstPrimary = existingImages.length === 0 && index === 0;
+          return uploadImageToSupabase(file, id, makeFirstPrimary);
+        });
+        
+        const results = await Promise.all(uploadPromises);
+        console.log('Image upload results:', results);
       }
 
       toast({
