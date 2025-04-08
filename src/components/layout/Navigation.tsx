@@ -15,16 +15,16 @@ export const Navigation = () => {
           <div className="hidden md:flex justify-center w-full">
             <ul className="flex space-x-6 lg:space-x-12">
               <li className="text-base md:text-lg font-semibold hover:text-white/80">
-                <Link to="/veiculos">Veículos</Link>
+                <Link to="/vehicles">Veículos</Link>
               </li>
               <li className="text-base md:text-lg font-semibold hover:text-white/80">
-                <Link to="/">Sobre Nós</Link>
+                <Link to="/about">Sobre Nós</Link>
               </li>
               <li className="text-base md:text-lg font-semibold hover:text-white/80">
-                <Link to="/financiamento">Financiamento</Link>
+                <Link to="/financing">Financiamento</Link>
               </li>
               <li className="text-base md:text-lg font-semibold hover:text-white/80">
-                <Link to="/">Contato</Link>
+                <Link to="/contact">Contato</Link>
               </li>
               <li className="text-base md:text-lg font-semibold hover:text-white/80 flex items-center">
                 <Link to="/admin/login" className="flex items-center gap-1">
@@ -76,7 +76,7 @@ export const Navigation = () => {
           <div className="md:hidden pt-3 pb-1 mt-2 border-t border-white/20">
             <ul className="grid grid-cols-2 gap-x-2 gap-y-2 py-2">
               <li className="text-sm font-semibold">
-                <Link to="/veiculos" 
+                <Link to="/vehicles" 
                   onClick={() => setIsMenuOpen(false)}
                   className="block py-1.5 px-2 rounded-md hover:bg-white/10"
                 >
@@ -84,7 +84,7 @@ export const Navigation = () => {
                 </Link>
               </li>
               <li className="text-sm font-semibold">
-                <Link to="/" 
+                <Link to="/about" 
                   onClick={() => setIsMenuOpen(false)}
                   className="block py-1.5 px-2 rounded-md hover:bg-white/10"
                 >
@@ -92,7 +92,7 @@ export const Navigation = () => {
                 </Link>
               </li>
               <li className="text-sm font-semibold">
-                <Link to="/financiamento" 
+                <Link to="/financing" 
                   onClick={() => setIsMenuOpen(false)}
                   className="block py-1.5 px-2 rounded-md hover:bg-white/10"
                 >
@@ -100,7 +100,7 @@ export const Navigation = () => {
                 </Link>
               </li>
               <li className="text-sm font-semibold">
-                <Link to="/" 
+                <Link to="/contact" 
                   onClick={() => setIsMenuOpen(false)}
                   className="block py-1.5 px-2 rounded-md hover:bg-white/10"
                 >
