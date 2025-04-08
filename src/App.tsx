@@ -1,81 +1,117 @@
+import React from 'react';
+import {
+  createBrowserRouter,
+  RouterProvider,
+} from "react-router-dom";
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
 import Vehicles from "./pages/Vehicles";
-import VehicleDetail from "./pages/VehicleDetail";
+import Home from "./pages/Home";
+import CarDetails from "./pages/CarDetails";
 import Financing from "./pages/Financing";
-
-// Páginas de Admin
-import AdminLogin from "./pages/admin/Login";
-import AdminDashboard from "./pages/admin/Dashboard";
+import Contact from "./pages/Contact";
+import About from "./pages/About";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import Schedule from "./pages/Schedule";
+import NotFound from "./pages/NotFound";
+import AdminPanel from "./pages/admin/AdminPanel";
+import AdminCars from "./pages/admin/cars/AdminCars";
+import AdminFinancing from "./pages/admin/AdminFinancing";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminSchedule from "./pages/admin/AdminSchedule";
+import AdminSettings from "./pages/admin/AdminSettings";
 import CreateCar from "./pages/admin/CreateCar";
 import EditCar from "./pages/admin/EditCar";
-import CarsList from "./pages/admin/CarsList";
-import FinancingRequests from "./pages/admin/FinancingRequests";
-import FinancingDetail from "./pages/admin/FinancingDetail";
-import AdminLayout from "./components/admin/AdminLayout";
+import Login from "./pages/admin/Login";
+import DiagnosticoUpload from "./pages/admin/DiagnosticoUpload";
 
-// Tratamento de erros
-import ErrorBoundary from "./components/ErrorBoundary";
-import { Suspense } from "react";
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Home />,
+  },
+  {
+    path: "/vehicles",
+    element: <Vehicles />,
+  },
+  {
+    path: "/vehicle/:id",
+    element: <CarDetails />,
+  },
+  {
+    path: "/financing",
+    element: <Financing />,
+  },
+  {
+    path: "/contact",
+    element: <Contact />,
+  },
+  {
+    path: "/about",
+    element: <About />,
+  },
+  {
+    path: "/terms",
+    element: <Terms />,
+  },
+  {
+    path: "/privacy",
+    element: <Privacy />,
+  },
+  {
+    path: "/schedule",
+    element: <Schedule />,
+  },
+  {
+    path: "/admin/login",
+    element: <Login />,
+  },
+  {
+    path: "admin/painel",
+    element: <AdminPanel />,
+  },
+  {
+    path: "admin/painel/cars",
+    element: <AdminCars />,
+  },
+  {
+    path: "admin/painel/cars/create",
+    element: <CreateCar />,
+  },
+  {
+    path: "admin/painel/cars/edit/:id",
+    element: <EditCar />,
+  },
+  {
+    path: "admin/painel/financing",
+    element: <AdminFinancing />,
+  },
+  {
+    path: "admin/painel/users",
+    element: <AdminUsers />,
+  },
+  {
+    path: "admin/painel/schedule",
+    element: <AdminSchedule />,
+  },
+  {
+    path: "admin/painel/settings",
+    element: <AdminSettings />,
+  },
+  {
+    path: "admin/painel/diagnostico-upload",
+    element: <DiagnosticoUpload />
+  },
+  {
+    path: "*",
+    element: <NotFound />,
+  },
+]);
 
-const queryClient = new QueryClient();
-
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Rotas públicas */}
-          <Route path="/" element={<Index />} />
-          <Route path="/veiculos" element={<Vehicles />} />
-          <Route path="/veiculo/:id" element={<VehicleDetail />} />
-          <Route path="/financiamento" element={<Financing />} />
-          
-          {/* Rotas administrativas */}
-          <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/painel" element={<AdminLayout />}>
-            <Route index element={<AdminDashboard />} />
-            <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="car/create" element={<CreateCar />} />
-            <Route path="car/edit/:id" element={<EditCar />} />
-            <Route path="cars" element={<CarsList />} />
-            <Route 
-              path="financiamentos" 
-              element={
-                <Suspense fallback={<div>Carregando...</div>}>
-                  <ErrorBoundary fallback={<div className="p-4 text-center">Erro ao carregar a página de financiamentos. Verifique se o banco de dados está configurado corretamente.</div>}>
-                    <FinancingRequests />
-                  </ErrorBoundary>
-                </Suspense>
-              } 
-            />
-            <Route 
-              path="financiamento/:id" 
-              element={
-                <Suspense fallback={<div>Carregando...</div>}>
-                  <ErrorBoundary fallback={<div className="p-4 text-center">Erro ao carregar os detalhes do financiamento.</div>}>
-                    <FinancingDetail />
-                  </ErrorBoundary>
-                </Suspense>
-              } 
-            />
-          </Route>
-          
-          {/* Rota 404 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <RouterProvider router={router} />
+  );
+}
 
 export default App;

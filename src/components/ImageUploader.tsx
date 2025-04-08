@@ -51,6 +51,70 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     }))
   );
   const [isUploading, setIsUploading] = useState(false);
+  const [supabaseReady, setSupabaseReady] = useState(false);
+
+  // Verificar configuração do Supabase ao iniciar
+  useEffect(() => {
+    const checkSupabaseConfig = async () => {
+      try {
+        console.log("🔄 Verificando configuração do Supabase...");
+        
+        // Testar conexão com o Supabase
+        const { data, error } = await supabase.from('car_ads').select('id').limit(1);
+        
+        if (error) {
+          console.error("❌ Erro ao conectar ao Supabase:", error);
+          toast({
+            title: "Erro de conexão",
+            description: "Não foi possível conectar ao banco de dados",
+            variant: "destructive",
+          });
+          setSupabaseReady(false);
+          return;
+        }
+        
+        console.log("✅ Conexão com Supabase estabelecida com sucesso");
+        
+        // Verificar buckets de armazenamento
+        const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+        
+        if (bucketsError) {
+          console.error("❌ Erro ao listar buckets:", bucketsError);
+          toast({
+            title: "Erro de armazenamento",
+            description: "Não foi possível verificar os buckets de armazenamento",
+            variant: "destructive",
+          });
+          setSupabaseReady(false);
+          return;
+        }
+        
+        console.log("📋 Buckets disponíveis:", buckets?.map(b => b.name).join(", ") || "nenhum");
+        
+        const carImagesBucket = buckets?.find(b => b.name === 'car-images');
+        
+        if (!carImagesBucket) {
+          console.error("❌ Bucket 'car-images' não encontrado");
+          toast({
+            title: "Configuração incompleta",
+            description: "O bucket de imagens não está configurado",
+            variant: "destructive",
+          });
+          setSupabaseReady(false);
+          return;
+        }
+        
+        console.log("✅ Bucket 'car-images' encontrado");
+        console.log("✅ Supabase configurado corretamente");
+        setSupabaseReady(true);
+      } catch (error) {
+        console.error("❌ Erro ao verificar configuração:", error);
+        setSupabaseReady(false);
+      }
+    };
+    
+    checkSupabaseConfig();
+  }, [toast]);
 
   // Update images when imagensExistentes changes
   useEffect(() => {
@@ -220,6 +284,16 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       return [];
     }
     
+    if (!supabaseReady) {
+      console.error("❌ Supabase não está configurado corretamente");
+      toast({
+        title: "Erro de configuração",
+        description: "O sistema de armazenamento não está pronto",
+        variant: "destructive",
+      });
+      return [];
+    }
+    
     setIsUploading(true);
     const imagensPendentes = imagens.filter(img => img.file);
     
@@ -253,16 +327,39 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       const bucketExists = buckets?.some(bucket => bucket.name === 'car-images');
       if (!bucketExists) {
         console.error("❌ Bucket 'car-images' não existe");
-        toast({
-          title: "Erro no upload",
-          description: "O sistema de armazenamento não está configurado corretamente",
-          variant: "destructive",
-        });
-        setIsUploading(false);
-        return [];
+        
+        // Tentar criar o bucket
+        try {
+          const { data, error } = await supabase.storage.createBucket('car-images', {
+            public: true,
+            fileSizeLimit: 5242880 // 5MB
+          });
+          
+          if (error) {
+            console.error("❌ Erro ao criar bucket:", error);
+            toast({
+              title: "Erro no upload",
+              description: "Não foi possível criar o bucket de armazenamento",
+              variant: "destructive",
+            });
+            setIsUploading(false);
+            return [];
+          }
+          
+          console.log("✅ Bucket criado com sucesso:", data);
+        } catch (createError) {
+          console.error("❌ Erro ao criar bucket:", createError);
+          toast({
+            title: "Erro no upload",
+            description: "O sistema de armazenamento não está configurado corretamente",
+            variant: "destructive",
+          });
+          setIsUploading(false);
+          return [];
+        }
+      } else {
+        console.log("✅ Bucket 'car-images' encontrado");
       }
-      
-      console.log("✅ Bucket 'car-images' encontrado");
     } catch (bucketError) {
       console.error("❌ Erro ao verificar bucket:", bucketError);
       setIsUploading(false);
@@ -319,6 +416,19 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         
         // Upload do arquivo
         console.log(`⬆️ Iniciando upload para: ${uniqueFileName}`);
+        
+        // Verificar políticas de storage
+        try {
+          const { data: policyData, error: policyError } = await supabase.storage
+            .from('car-images')
+            .getPublicUrl('test-policy-check.txt');
+            
+          console.log("🔍 Teste de política de armazenamento:", policyError ? "erro" : "sucesso");
+        } catch (policyTestError) {
+          console.warn("⚠️ Erro ao testar políticas:", policyTestError);
+        }
+        
+        // Realizar upload
         const { data, error: uploadError } = await supabase.storage
           .from('car-images')
           .upload(uniqueFileName, imagem.file, {
@@ -376,18 +486,74 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         
         // Inserir no banco de dados
         console.log(`📝 Inserindo no banco de dados: ${imageUrl} (primária: ${ehPrimaria})`);
-        const { data: insertData, error: insertError } = await supabase
-          .from('car_images')
-          .insert({
-            car_id: idCarro,
-            image_url: imageUrl,
-            is_primary: ehPrimaria
-          })
-          .select()
-          .single();
+        
+        // Log do JSON que está sendo enviado
+        console.log("📝 Dados para inserção:", JSON.stringify({
+          car_id: idCarro,
+          image_url: imageUrl,
+          is_primary: ehPrimaria
+        }));
+        
+        try {
+          const { data: insertData, error: insertError } = await supabase
+            .from('car_images')
+            .insert({
+              car_id: idCarro,
+              image_url: imageUrl,
+              is_primary: ehPrimaria
+            })
+            .select()
+            .single();
           
-        if (insertError) {
-          console.error(`❌ Erro ao inserir no banco: ${insertError.message}`);
+          if (insertError) {
+            console.error(`❌ Erro ao inserir no banco: ${insertError.message}`);
+            
+            // Atualizar estado da imagem com erro
+            setImagens(currentImagens => {
+              return currentImagens.map(img => {
+                if (img === imagem) {
+                  return { 
+                    ...img, 
+                    isUploading: false, 
+                    error: "Erro no banco de dados" 
+                  };
+                }
+                return img;
+              });
+            });
+            
+            try {
+              // Tentar remover o arquivo já que falhou a inserção
+              await supabase.storage
+                .from('car-images')
+                .remove([uniqueFileName]);
+              console.log("🗑️ Arquivo removido após falha na inserção");
+            } catch (removeError) {
+              console.error("❌ Erro ao remover arquivo após falha:", removeError);
+            }
+            
+            continue;
+          }
+          
+          console.log(`✅ Inserido no banco com ID: ${insertData?.id}`);
+          urlsUpload.push(imageUrl);
+          
+          // Atualizar estado da imagem
+          setImagens(currentImagens => {
+            return currentImagens.map(img => {
+              if (img === imagem) {
+                return {
+                  id: insertData?.id,
+                  url: imageUrl,
+                  isUploading: false,
+                  isPrimary: ehPrimaria
+                };
+              }
+              return img;
+            });
+          });
+        } catch (dbError: any) {
+          console.error(`❌ Exceção ao inserir no banco: ${dbError.message}`, dbError);
           
           // Atualizar estado da imagem com erro
           setImagens(currentImagens => {
@@ -396,7 +562,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                 return { 
                   ...img, 
                   isUploading: false, 
-                  error: "Erro no banco de dados" 
+                  error: dbError.message || "Erro no banco de dados" 
                 };
               }
               return img;
@@ -415,25 +581,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           
           continue;
         }
-        
-        console.log(`✅ Inserido no banco com ID: ${insertData?.id}`);
-        urlsUpload.push(imageUrl);
-        
-        // Atualizar estado da imagem
-        setImagens(currentImagens => {
-          return currentImagens.map(img => {
-            if (img === imagem) {
-              return {
-                id: insertData?.id,
-                url: imageUrl,
-                isUploading: false,
-                isPrimary: ehPrimaria
-              };
-            }
-            return img;
-          });
-        });
-        
       } catch (error: any) {
         console.error(`❌ Erro não tratado no upload: ${error.message}`);
         
@@ -468,6 +615,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   return (
     <div className="space-y-4">
+      {!supabaseReady && (
+        <div className="bg-red-50 border border-red-200 p-4 rounded-md mb-4">
+          <p className="text-sm text-red-800">
+            <strong>Atenção:</strong> O sistema de armazenamento não está configurado corretamente.
+            Não será possível fazer upload de imagens.
+          </p>
+        </div>
+      )}
+      
       {/* Input de arquivo visualmente escondido mas acessível */}
       <input
         type="file"
@@ -476,7 +632,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         accept="image/*"
         className="sr-only"
         onChange={handleFileSelect}
-        disabled={disabled || isUploading || imagens.length >= maxImagens}
+        disabled={disabled || isUploading || imagens.length >= maxImagens || !supabaseReady}
       />
 
       {/* Botão para abrir seletor de arquivos */}
@@ -484,7 +640,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         <label
           htmlFor="image-upload-input"
           className={`flex items-center px-4 py-2 rounded-md border border-input ${
-            disabled || isUploading || imagens.length >= maxImagens
+            disabled || isUploading || imagens.length >= maxImagens || !supabaseReady
               ? "opacity-50 cursor-not-allowed bg-muted"
               : "cursor-pointer hover:bg-accent hover:text-accent-foreground"
           }`}
