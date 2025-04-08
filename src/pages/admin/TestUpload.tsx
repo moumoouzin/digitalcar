@@ -1,346 +1,459 @@
-
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { useImageUploader } from "@/hooks/useImageUploader";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { verificarBucket } from "@/services/imageService";
+import React, { useState } from 'react';
 import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
-import { Loader2Icon, CheckCircleIcon, XCircleIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { v4 as uuidv4 } from "uuid";
 
-const TestUpload = () => {
-  const { ImageUploaderComponent, uploadImages, isUploading } = useImageUploader();
-  const [testId] = useState(`test-${new Date().getTime()}`);
-  const [testResults, setTestResults] = useState<{[key: string]: boolean | null}>({
-    bucket: null,
-    policies: null,
-    upload: null,
-    database: null
-  });
-  const [isRunningTests, setIsRunningTests] = useState(false);
-  const [uploadedUrls, setUploadedUrls] = useState<string[]>([]);
-  const [logs, setLogs] = useState<string[]>([]);
+// Página de diagnóstico para upload de imagens
+const TestUpload: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<string>('');
+  const [logMessages, setLogMessages] = useState<string[]>([]);
 
+  // Função auxiliar para adicionar logs
   const addLog = (message: string) => {
-    setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${message}`]);
+    setLogMessages(prev => [...prev, `${new Date().toISOString().substring(11, 19)} - ${message}`]);
   };
 
-  const runTests = async () => {
-    setIsRunningTests(true);
-    setTestResults({
-      bucket: null,
-      policies: null,
-      upload: null,
-      database: null
-    });
-    setUploadedUrls([]);
-    setLogs([]);
-    
-    addLog("Iniciando testes de upload de imagens...");
-    
-    // Teste 1: Verificar bucket
-    addLog("Teste 1: Verificando bucket 'car-images'...");
+  // 1. Teste de listagem de buckets
+  const testListBuckets = async () => {
+    setLoading(true);
+    addLog("🔍 Teste 1: Listando buckets disponíveis...");
+
     try {
-      const bucketOk = await verificarBucket();
-      setTestResults(prev => ({ ...prev, bucket: bucketOk }));
-      
-      if (bucketOk) {
-        addLog("✅ Bucket 'car-images' verificado com sucesso!");
-      } else {
-        addLog("❌ Falha ao verificar bucket 'car-images'");
-      }
-    } catch (error: any) {
-      addLog(`❌ Erro ao verificar bucket: ${error.message}`);
-      setTestResults(prev => ({ ...prev, bucket: false }));
-    }
-    
-    // Teste 2: Verificar políticas
-    addLog("Teste 2: Verificando políticas de storage...");
-    try {
-      const { data: policies, error } = await supabase
-        .from('_supabase_policy_catalog')
-        .select('*')
-        .or('name.ilike.%car-images%,definition.ilike.%car-images%')
+      const { data, error } = await supabase.storage.listBuckets();
       
       if (error) {
-        addLog(`❌ Erro ao verificar políticas: ${error.message}`);
-        setTestResults(prev => ({ ...prev, policies: false }));
+        addLog(`❌ Erro ao listar buckets: ${error.message}`);
+        setResult('Falha ao listar buckets. Verifique os logs.');
       } else {
-        const hasRequiredPolicies = policies && policies.length >= 2;
-        setTestResults(prev => ({ ...prev, policies: hasRequiredPolicies }));
+        const bucketNames = data.map(b => b.name).join(', ');
+        addLog(`✅ Buckets encontrados: ${bucketNames || 'nenhum'}`);
         
-        if (hasRequiredPolicies) {
-          addLog(`✅ Políticas verificadas: ${policies.length} políticas encontradas`);
+        const carImagesBucket = data.find(b => b.name === 'car-images');
+        if (carImagesBucket) {
+          addLog(`✅ Bucket 'car-images' encontrado! ID: ${carImagesBucket.id}`);
         } else {
-          addLog(`⚠️ Possível problema: Apenas ${policies?.length || 0} políticas encontradas`);
+          addLog(`⚠️ Bucket 'car-images' NÃO encontrado!`);
         }
+        
+        setResult('Listagem de buckets concluída com sucesso. Verifique os logs.');
       }
     } catch (error: any) {
-      addLog(`❌ Erro ao verificar políticas: ${error.message}`);
-      setTestResults(prev => ({ ...prev, policies: false }));
-    }
-    
-    // Teste 3 e 4: Upload de imagem e salvamento no banco
-    addLog(`Teste 3 e 4: Testando upload de imagem para ID: ${testId}...`);
-    
-    const handleUploadButtonClick = async () => {
-      try {
-        addLog("Iniciando upload via hook useImageUploader...");
-        const urls = await uploadImages(testId);
-        
-        if (urls && urls.length > 0) {
-          addLog(`✅ Upload bem-sucedido: ${urls.length} imagens enviadas`);
-          setTestResults(prev => ({ ...prev, upload: true }));
-          setUploadedUrls(urls);
-          
-          // Verificar se as imagens foram salvas no banco
-          addLog("Verificando registros no banco de dados...");
-          const { data, error } = await supabase
-            .from('car_images')
-            .select('*')
-            .eq('car_id', testId);
-          
-          if (error) {
-            addLog(`❌ Erro ao verificar registros: ${error.message}`);
-            setTestResults(prev => ({ ...prev, database: false }));
-          } else if (data && data.length > 0) {
-            addLog(`✅ ${data.length} registros encontrados no banco de dados`);
-            setTestResults(prev => ({ ...prev, database: true }));
-          } else {
-            addLog("❌ Nenhum registro encontrado no banco de dados");
-            setTestResults(prev => ({ ...prev, database: false }));
-          }
-        } else {
-          addLog("❌ Falha no upload: Nenhuma imagem enviada");
-          setTestResults(prev => ({ ...prev, upload: false, database: false }));
-        }
-      } catch (error: any) {
-        addLog(`❌ Erro durante o upload: ${error.message}`);
-        setTestResults(prev => ({ ...prev, upload: false, database: false }));
-      } finally {
-        setIsRunningTests(false);
-      }
-    };
-    
-    // Aguardar um momento para o componente renderizar
-    setTimeout(() => {
-      addLog("Aguardando seleção de imagens...");
-      setIsRunningTests(false);
-    }, 1500);
-  };
-  
-  const cleanupTest = async () => {
-    if (!testId) return;
-    
-    setIsRunningTests(true);
-    addLog("Limpando dados de teste...");
-    
-    try {
-      // Remover registros do banco
-      const { error: dbError } = await supabase
-        .from('car_images')
-        .delete()
-        .eq('car_id', testId);
-      
-      if (dbError) {
-        addLog(`❌ Erro ao remover registros: ${dbError.message}`);
-      } else {
-        addLog("✅ Registros removidos do banco de dados");
-      }
-      
-      // Remover arquivos do storage
-      try {
-        const { data: files } = await supabase.storage
-          .from('car-images')
-          .list(testId);
-        
-        if (files && files.length > 0) {
-          const filePaths = files.map(file => `${testId}/${file.name}`);
-          
-          const { error: storageError } = await supabase.storage
-            .from('car-images')
-            .remove(filePaths);
-          
-          if (storageError) {
-            addLog(`❌ Erro ao remover arquivos: ${storageError.message}`);
-          } else {
-            addLog(`✅ ${filePaths.length} arquivos removidos do storage`);
-          }
-        } else {
-          addLog("ℹ️ Nenhum arquivo encontrado para remover");
-        }
-      } catch (error: any) {
-        addLog(`❌ Erro ao listar/remover arquivos: ${error.message}`);
-      }
-    } catch (error: any) {
-      addLog(`❌ Erro durante limpeza: ${error.message}`);
+      addLog(`❌ Exceção ao listar buckets: ${error.message}`);
+      setResult('Erro ao listar buckets. Verifique os logs.');
     } finally {
-      setIsRunningTests(false);
+      setLoading(false);
     }
   };
-  
-  const getTestStatusIcon = (status: boolean | null) => {
-    if (status === null) return <Loader2Icon className="h-5 w-5 text-gray-300" />;
-    return status ? 
-      <CheckCircleIcon className="h-5 w-5 text-green-500" /> : 
-      <XCircleIcon className="h-5 w-5 text-red-500" />;
+
+  // 2. Teste de criação de bucket
+  const testCreateBucket = async () => {
+    setLoading(true);
+    addLog("🔍 Teste 2: Tentando criar bucket 'car-images'...");
+
+    try {
+      // Removed the problematic code that was querying _supabase_policy_catalog
+      // Instead, we'll directly try to create the bucket and handle any errors
+      
+      const { data, error } = await supabase.storage.createBucket('car-images', {
+        public: true,
+        fileSizeLimit: 5242880 // 5MB
+      });
+      
+      if (error) {
+        if (error.message.includes('already exists')) {
+          addLog(`ℹ️ Bucket 'car-images' já existe`);
+          setResult('Bucket já existe. Teste as outras funções.');
+        } else {
+          addLog(`❌ Erro ao criar bucket: ${error.message}`);
+          setResult('Falha ao criar bucket. Verifique os logs.');
+        }
+      } else {
+        addLog(`✅ Bucket 'car-images' criado com sucesso!`);
+        setResult('Bucket criado com sucesso. Continue com os outros testes.');
+      }
+    } catch (error: any) {
+      addLog(`❌ Exceção ao criar bucket: ${error.message}`);
+      setResult('Erro ao criar bucket. Verifique os logs.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 3. Criar uma imagem simples para teste
+  const createTestImage = (): Promise<File> => {
+    return new Promise((resolve) => {
+      // Criar um canvas para desenhar uma imagem simples
+      const canvas = document.createElement('canvas');
+      canvas.width = 200;
+      canvas.height = 200;
+      const ctx = canvas.getContext('2d');
+      
+      if (ctx) {
+        // Desenhar um retângulo vermelho
+        ctx.fillStyle = 'red';
+        ctx.fillRect(0, 0, 200, 200);
+        
+        // Adicionar texto
+        ctx.fillStyle = 'white';
+        ctx.font = '20px Arial';
+        ctx.fillText('Teste Supabase', 30, 100);
+      }
+      
+      // Converter para blob e criar um arquivo
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const file = new File([blob], `teste-${Date.now()}.png`, { type: 'image/png' });
+          resolve(file);
+        } else {
+          // Fallback para um pequeno arquivo de texto se não conseguir criar a imagem
+          const textBlob = new Blob(['Arquivo de teste'], { type: 'text/plain' });
+          resolve(new File([textBlob], 'fallback.txt', { type: 'text/plain' }));
+        }
+      }, 'image/png');
+    });
+  };
+
+  // 4. Teste de upload direto para o bucket
+  const testDirectUpload = async () => {
+    setLoading(true);
+    addLog("🔍 Teste 3: Fazendo upload direto para o bucket...");
+
+    try {
+      // Criar arquivo para teste
+      const file = await createTestImage();
+      addLog(`📂 Arquivo de teste criado: ${file.name} (${file.size} bytes) - Tipo: ${file.type}`);
+      
+      // Gerar um nome de arquivo único
+      const fileName = `teste-direto-${uuidv4()}.png`;
+      addLog(`📝 Nome gerado para o arquivo: ${fileName}`);
+      
+      // Verificar se o bucket existe
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      if (bucketsError) {
+        addLog(`❌ Erro ao verificar buckets: ${bucketsError.message}`);
+      } else {
+        const hasBucket = buckets.some(b => b.name === 'car-images');
+        addLog(`ℹ️ Bucket 'car-images' ${hasBucket ? 'encontrado' : 'NÃO encontrado'}`);
+      }
+      
+      // Upload para o storage
+      addLog(`⬆️ Iniciando upload do arquivo...`);
+      const { data, error } = await supabase.storage
+        .from('car-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+        
+      if (error) {
+        addLog(`❌ Erro no upload: ${error.message}`);
+        addLog(`❓ Informações adicionais de erro: ${JSON.stringify(error)}`);
+        
+        if (error.message.includes('permission') || error.message.includes('not authorized')) {
+          addLog(`⚠️ Parece ser um problema de permissão. Verifique as políticas do bucket.`);
+        }
+        setResult('Falha no upload direto. Verifique os logs.');
+      } else {
+        addLog(`✅ Upload concluído com sucesso! Path: ${data.path}`);
+        const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/${fileName}`;
+        addLog(`🔗 URL pública: ${publicUrl}`);
+        
+        // Verificar se a URL é acessível
+        try {
+          addLog(`🔍 Verificando se a URL é acessível...`);
+          const response = await fetch(publicUrl, { method: 'HEAD' });
+          if (response.ok) {
+            addLog(`✅ URL pública está acessível! Status: ${response.status}`);
+          } else {
+            addLog(`⚠️ URL pública retornou status ${response.status}`);
+          }
+        } catch (error: any) {
+          addLog(`⚠️ Erro ao verificar URL pública: ${error.message}`);
+        }
+        
+        setResult(`Upload bem-sucedido! URL: ${publicUrl}`);
+      }
+    } catch (error: any) {
+      addLog(`❌ Exceção no upload: ${error.message}`);
+      addLog(`🔍 Stack de erro: ${error.stack}`);
+      setResult('Erro no upload direto. Verifique os logs.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 5. Teste de inserção no banco de dados
+  const testDatabaseInsert = async () => {
+    setLoading(true);
+    addLog("🔍 Teste 4: Inserindo registro na tabela car_images...");
+
+    try {
+      // Criar um ID de teste para o carro
+      const carId = uuidv4();
+      addLog(`🚗 ID de carro gerado para teste: ${carId}`);
+      
+      // URL fictícia para teste
+      const imageUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/teste-db-${Date.now()}.jpg`;
+      addLog(`🔗 URL de imagem para teste: ${imageUrl}`);
+      
+      // Tentar inserir na tabela car_images
+      const { data, error } = await supabase
+        .from('car_images')
+        .insert({
+          car_id: carId,
+          image_url: imageUrl,
+          is_primary: true
+        })
+        .select();
+        
+      if (error) {
+        addLog(`❌ Erro ao inserir no banco: ${error.message}`);
+        
+        if (error.message.includes('violates foreign key constraint')) {
+          addLog(`⚠️ Erro de chave estrangeira. Precisamos de um car_id válido.`);
+          
+          // Tentar criar um carro primeiro
+          addLog(`🔄 Tentando criar um carro primeiro...`);
+          const { data: carData, error: carError } = await supabase
+            .from('car_ads')
+            .insert({
+              title: 'Carro de teste',
+              price: 10000,
+              brand: 'Teste',
+              model: 'Teste',
+              year: '2023',
+              color: 'Preto',
+              transmission: 'Manual',
+              mileage: '0',
+              description: 'Veículo de teste para diagnóstico do sistema',
+              whatsapp: '11912345678',
+              status: 'pending'
+            })
+            .select('id')
+            .single();
+            
+          if (carError) {
+            addLog(`❌ Erro ao criar carro: ${carError.message}`);
+          } else if (carData) {
+            const newCarId = carData.id;
+            addLog(`✅ Carro criado com ID: ${newCarId}`);
+            
+            // Tentar inserir novamente com o ID válido
+            addLog(`🔄 Tentando inserir com ID válido...`);
+            const { data: imageData, error: imageError } = await supabase
+              .from('car_images')
+              .insert({
+                car_id: newCarId,
+                image_url: imageUrl,
+                is_primary: true
+              })
+              .select();
+              
+            if (imageError) {
+              addLog(`❌ Erro ao inserir novamente: ${imageError.message}`);
+            } else {
+              addLog(`✅ Inserção no banco bem-sucedida!`);
+              setResult('Inserção no banco bem-sucedida após criar carro.');
+              return;
+            }
+          }
+        }
+        
+        setResult('Falha ao inserir no banco. Verifique os logs.');
+      } else {
+        addLog(`✅ Inserção no banco bem-sucedida! ID: ${data[0]?.id}`);
+        setResult('Inserção no banco bem-sucedida!');
+      }
+    } catch (error: any) {
+      addLog(`❌ Exceção ao inserir no banco: ${error.message}`);
+      setResult('Erro ao inserir no banco. Verifique os logs.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 6. Teste completo (upload + inserção)
+  const testCompleteFlow = async () => {
+    setLoading(true);
+    addLog("🔍 Teste 5: Fluxo completo (upload + inserção no banco)...");
+
+    try {
+      // 1. Criar carro para teste
+      addLog(`🚗 Criando carro para teste...`);
+      const { data: carData, error: carError } = await supabase
+        .from('car_ads')
+        .insert({
+          title: 'Carro de teste completo',
+          price: 10000,
+          brand: 'Teste',
+          model: 'Completo',
+          year: '2023',
+          color: 'Vermelho',
+          transmission: 'Automático',
+          mileage: '0',
+          description: 'Veículo de teste para diagnóstico do sistema completo',
+          whatsapp: '11912345678',
+          status: 'pending'
+        })
+        .select('id')
+        .single();
+        
+      if (carError) {
+        addLog(`❌ Erro ao criar carro: ${carError.message}`);
+        setResult('Falha ao criar carro para teste. Verifique os logs.');
+        setLoading(false);
+        return;
+      }
+      
+      const carId = carData.id;
+      addLog(`✅ Carro criado com ID: ${carId}`);
+      
+      // 2. Criar imagem de teste
+      const file = await createTestImage();
+      addLog(`📂 Arquivo de teste criado: ${file.name} (${file.size} bytes)`);
+      
+      // 3. Gerar nome único para a imagem
+      const fileName = `${carId}/${uuidv4()}.png`;
+      addLog(`📝 Nome gerado para o arquivo: ${fileName}`);
+      
+      // 4. Upload para o storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('car-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+        
+      if (uploadError) {
+        addLog(`❌ Erro no upload: ${uploadError.message}`);
+        setResult('Falha no upload da imagem. Verifique os logs.');
+        setLoading(false);
+        return;
+      }
+      
+      addLog(`✅ Upload concluído com sucesso! Path: ${uploadData.path}`);
+      
+      // 5. Criar URL pública
+      const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/car-images/${fileName}`;
+      addLog(`🔗 URL pública: ${publicUrl}`);
+      
+      // 6. Inserir no banco
+      const { data: imageData, error: imageError } = await supabase
+        .from('car_images')
+        .insert({
+          car_id: carId,
+          image_url: publicUrl,
+          is_primary: true
+        })
+        .select();
+        
+      if (imageError) {
+        addLog(`❌ Erro ao inserir imagem no banco: ${imageError.message}`);
+        setResult('Falha ao inserir imagem no banco. Verifique os logs.');
+      } else {
+        addLog(`✅ Inserção no banco bem-sucedida! ID: ${imageData[0]?.id}`);
+        setResult(`Fluxo completo bem-sucedido! ID da imagem: ${imageData[0]?.id}`);
+      }
+    } catch (error: any) {
+      addLog(`❌ Exceção no fluxo completo: ${error.message}`);
+      setResult('Erro no fluxo completo. Verifique os logs.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 7. Limpar logs
+  const clearLogs = () => {
+    setLogMessages([]);
+    setResult('');
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Diagnóstico de Upload de Imagens</h1>
-        <p className="text-muted-foreground mt-1">
-          Esta página ajuda a diagnosticar problemas com o upload de imagens
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Testes de Configuração</CardTitle>
-            <CardDescription>
-              Verifique se o sistema está configurado corretamente para upload de imagens
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span>Bucket 'car-images' existe</span>
-                {getTestStatusIcon(testResults.bucket)}
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span>Políticas de acesso configuradas</span>
-                {getTestStatusIcon(testResults.policies)}
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span>Upload de imagens funciona</span>
-                {getTestStatusIcon(testResults.upload)}
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span>Salvamento no banco de dados</span>
-                {getTestStatusIcon(testResults.database)}
-              </div>
-            </div>
-            
-            <div className="flex justify-between">
-              <Button 
-                variant="outline" 
-                onClick={runTests} 
-                disabled={isRunningTests}
-              >
-                {isRunningTests ? (
-                  <>
-                    <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                    Executando testes
-                  </>
-                ) : "Iniciar Diagnóstico"}
-              </Button>
-              
-              <Button 
-                variant="destructive" 
-                onClick={cleanupTest}
-                disabled={isRunningTests || !testId}
-              >
-                Limpar Dados de Teste
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Teste de Upload</CardTitle>
-            <CardDescription>
-              Selecione imagens e teste o upload na prática
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="p-4 border rounded-md">
-                <p className="text-sm font-medium mb-3">ID de teste: {testId}</p>
-                <ImageUploaderComponent carroId={testId} maxImagens={3} />
-              </div>
-              
-              <div className="flex justify-center">
-                <Button 
-                  onClick={async () => {
-                    const urls = await uploadImages(testId);
-                    setUploadedUrls(urls || []);
-                    if (urls && urls.length > 0) {
-                      addLog(`✅ Upload bem-sucedido: ${urls.length} imagens`);
-                    } else {
-                      addLog("❌ Nenhuma imagem enviada");
-                    }
-                  }} 
-                  disabled={isUploading}
-                >
-                  {isUploading ? (
-                    <>
-                      <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                      Enviando...
-                    </>
-                  ) : "Testar Upload"}
-                </Button>
-              </div>
-              
-              {uploadedUrls.length > 0 && (
-                <div className="mt-4">
-                  <p className="text-sm font-medium mb-2">URLs geradas:</p>
-                  <div className="text-xs overflow-auto bg-muted p-2 rounded max-h-40">
-                    {uploadedUrls.map((url, idx) => (
-                      <div key={idx} className="mb-1">
-                        <a href={url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline break-all">
-                          {url}
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
+    <div className="container mx-auto py-8 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Logs de Diagnóstico</CardTitle>
+          <CardTitle className="text-2xl">Diagnóstico de Upload de Imagens</CardTitle>
           <CardDescription>
-            Histórico detalhado das verificações realizadas
+            Esta página executa vários testes para identificar problemas com uploads de imagens para o Supabase.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="bg-black text-green-400 p-4 rounded-md font-mono text-sm h-64 overflow-y-auto">
-            {logs.length > 0 ? (
-              logs.map((log, idx) => (
-                <div key={idx} className="mb-1">{log}</div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Button 
+              onClick={testListBuckets} 
+              disabled={loading}
+              variant="outline"
+            >
+              1. Listar Buckets
+            </Button>
+            
+            <Button 
+              onClick={testCreateBucket} 
+              disabled={loading}
+              variant="outline"
+            >
+              2. Criar Bucket
+            </Button>
+            
+            <Button 
+              onClick={testDirectUpload} 
+              disabled={loading}
+              variant="outline"
+            >
+              3. Testar Upload Direto
+            </Button>
+            
+            <Button 
+              onClick={testDatabaseInsert} 
+              disabled={loading}
+              variant="outline"
+            >
+              4. Testar Inserção no BD
+            </Button>
+            
+            <Button 
+              onClick={testCompleteFlow} 
+              disabled={loading}
+              variant="outline"
+            >
+              5. Testar Fluxo Completo
+            </Button>
+            
+            <Button 
+              onClick={clearLogs} 
+              disabled={loading}
+              variant="destructive"
+            >
+              Limpar Logs
+            </Button>
+          </div>
+          
+          {result && (
+            <div className={`mt-6 p-4 rounded-md ${result.includes('erro') || result.includes('falha') ? 'bg-red-50 text-red-800' : 'bg-green-50 text-green-800'}`}>
+              <p className="font-medium">{result}</p>
+            </div>
+          )}
+          
+          <Separator className="my-6" />
+          
+          <div className="bg-black text-green-400 font-mono p-4 rounded-md h-64 overflow-y-auto text-sm">
+            {logMessages.length > 0 ? (
+              logMessages.map((log, i) => (
+                <div key={i}>{log}</div>
               ))
             ) : (
-              <p>Execute o diagnóstico para ver os logs...</p>
+              <div className="text-gray-500">Execute um teste para ver os logs aqui...</div>
             )}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <Button 
-            variant="outline" 
-            onClick={() => setLogs([])} 
-            disabled={logs.length === 0}
-          >
-            Limpar Logs
-          </Button>
-          
-          <Button 
-            onClick={() => {
-              navigator.clipboard.writeText(logs.join('\n'));
-              alert('Logs copiados para a área de transferência');
-            }} 
-            disabled={logs.length === 0}
-          >
-            Copiar Logs
-          </Button>
+        <CardFooter>
+          <p className="text-sm text-muted-foreground">
+            Esta página ajuda a identificar onde está o problema com o upload de imagens.
+            Execute os testes na sequência para diagnosticar o problema.
+          </p>
         </CardFooter>
       </Card>
     </div>
