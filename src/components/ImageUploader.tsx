@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { XCircleIcon, PlusCircleIcon, ImageIcon } from "lucide-react";
@@ -26,6 +27,11 @@ interface ImageUploaderProps {
   }) => void;
 }
 
+// Define a ImageUploaderFunctions type outside the component
+export type ImageUploaderFunctions = {
+  uploadImagensPendentes: (carroId: string) => Promise<string[]>;
+};
+
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   carroId,
   imagensExistentes = [],
@@ -45,6 +51,17 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   );
   const [isUploading, setIsUploading] = useState(false);
 
+  // Update images when imagensExistentes changes
+  useEffect(() => {
+    if (imagensExistentes && imagensExistentes.length > 0) {
+      setImagens(imagensExistentes.map(img => ({
+        id: img.id,
+        url: img.image_url,
+        isPrimary: img.is_primary
+      })));
+    }
+  }, [imagensExistentes]);
+
   // Registrar a função de upload com o componente pai quando montado
   useEffect(() => {
     if (onRegister) {
@@ -52,6 +69,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         uploadImagensPendentes
       });
     }
+    
+    // Log para depuração
+    console.log("🔄 ImageUploader montado com:", {
+      carroId,
+      imagensExistentes: imagensExistentes?.length || 0,
+      imagens: imagens.length
+    });
   }, [onRegister]);
 
   // Manipular seleção de novos arquivos
@@ -156,6 +180,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   // Realizar upload de todas as imagens pendentes
   const uploadImagensPendentes = async (idCarro: string): Promise<string[]> => {
     if (!idCarro) {
+      console.error("❌ ID do carro não fornecido para upload de imagens");
       toast({
         title: "Erro de upload",
         description: "ID do carro não definido. Salve o formulário primeiro.",
@@ -176,7 +201,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       return [];
     }
     
-    console.log(`📤 Iniciando upload de ${imagensPendentes.length} imagens...`);
+    console.log(`📤 Iniciando upload de ${imagensPendentes.length} imagens para o carro ${idCarro}...`);
     
     // Marcar todas as imagens como 'uploading'
     setImagens(currentImagens => {
@@ -200,7 +225,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         continue;
       }
       
-      console.log(`⬆️ Enviando imagem ${i+1}/${imagensPendentes.length}: ${imagem.file.name}`);
+      console.log(`⬆️ Enviando imagem ${i+1}/${imagensPendentes.length}: ${imagem.file.name} para o carro ID: ${idCarro}`);
       
       try {
         // Define se essa imagem será primária
@@ -245,6 +270,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             description: resultado.erro || "Ocorreu um erro inesperado.",
             variant: "destructive",
           });
+        } else {
+          console.log(`✅ Upload bem-sucedido da imagem ${i+1}, URL: ${resultado.url}`);
         }
       } catch (erro: any) {
         console.error(`❌ Exceção no upload da imagem ${i+1}:`, erro);
@@ -380,8 +407,3 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 };
 
 export default ImageUploader;
-
-// Tipo para o objeto uploader
-export type ImageUploaderFunctions = {
-  uploadImagensPendentes: (carroId: string) => Promise<string[]>;
-}; 

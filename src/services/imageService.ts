@@ -1,3 +1,4 @@
+
 import { v4 as uuidv4 } from "uuid";
 import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
 
@@ -55,7 +56,7 @@ export const uploadImagem = async (
   carroId: string, 
   ehPrimaria: boolean = false
 ): Promise<{ sucesso: boolean; url?: string; erro?: string }> => {
-  console.log(`📤 Iniciando upload: ${arquivo.name} (${Math.round(arquivo.size / 1024)}KB)`);
+  console.log(`📤 Iniciando upload: ${arquivo.name} (${Math.round(arquivo.size / 1024)}KB) para o carro ID: ${carroId}`);
   
   try {
     // 1. Verificar tamanho do arquivo
@@ -84,8 +85,9 @@ export const uploadImagem = async (
     const { data, error } = await supabase.storage
       .from('car-images')
       .upload(nomeArquivo, arquivo, {
-        upsert: false,
-        contentType: arquivo.type
+        upsert: true,
+        contentType: arquivo.type,
+        cacheControl: '3600'
       });
       
     if (error) {
@@ -367,4 +369,4 @@ export const definirImagemPrimaria = async (
       erro: erro.message || "Erro desconhecido ao definir imagem primária"
     };
   }
-}; 
+};

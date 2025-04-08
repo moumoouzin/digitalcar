@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, Car, Info, FileQuestion, Phone, User, LayoutDashboard, FileText, ImageIcon } from "lucide-react";
@@ -26,7 +27,7 @@ const adminMenuItems: MenuItem[] = [
   { name: "Dashboard", path: "/admin/painel/dashboard", icon: LayoutDashboard },
   { name: "Veículos", path: "/admin/painel/cars", icon: Car },
   { name: "Financiamentos", path: "/admin/painel/financiamentos", icon: FileText },
-  { name: "Diagnóstico de Upload", path: "/TestUpload", icon: ImageIcon },
+  { name: "Diagnóstico de Upload", path: "/admin/painel/test-upload", icon: ImageIcon },
 ];
 
 const SidebarMenu = () => {

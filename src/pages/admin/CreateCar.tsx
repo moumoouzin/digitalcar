@@ -81,7 +81,7 @@ const generateYears = () => {
 const CreateCar = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { ImageUploaderComponent, uploadImages } = useImageUploader();
+  const { ImageUploaderComponent, uploadImages, isUploading } = useImageUploader();
   
   const [selectedBrand, setSelectedBrand] = useState("");
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
@@ -180,13 +180,21 @@ const CreateCar = () => {
       }
       
       // 4. Fazer upload das imagens
-      console.log("📸 Iniciando upload de imagens...");
+      console.log("📸 Iniciando upload de imagens para ID:", carId);
       try {
         const resultadoUpload = await uploadImages(carId);
-        console.log(`✅ Upload de imagens concluído: ${resultadoUpload.length} imagens enviadas`);
+        console.log(`✅ Upload de imagens concluído: ${resultadoUpload.length} imagens enviadas`, resultadoUpload);
+        
+        if (resultadoUpload.length === 0) {
+          console.warn("⚠️ Nenhuma imagem foi enviada");
+        }
       } catch (uploadError) {
         console.error("❌ Erro durante upload de imagens:", uploadError);
-        // Continua mesmo com erro no upload
+        toast({
+          title: "Aviso",
+          description: "O anúncio foi criado, mas pode haver problemas com as imagens.",
+          variant: "destructive",
+        });
       }
       
       // 5. Notificar sucesso e redirecionar
@@ -208,8 +216,6 @@ const CreateCar = () => {
       setIsSubmitting(false);
     }
   };
-
-  // Componentes do formulário
 
   const BasicInfoForm = ({ onNext }: { onNext: () => void }) => (
     <div className="space-y-6">
@@ -559,9 +565,15 @@ const CreateCar = () => {
   const PhotosForm = ({ onPrevious }: { onPrevious: () => void }) => (
     <div className="space-y-6">
       <div className="space-y-4">
-        <div className="space-y-4">
-          <Label>Fotos do Veículo</Label>
-          <ImageUploaderComponent maxImagens={10} />
+        <div className="space-y-2">
+          <p className="font-medium">Fotos do Veículo</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Adicione até 10 fotos do veículo. A primeira imagem será usada como capa.
+          </p>
+          <ImageUploaderComponent 
+            maxImagens={10} 
+            disabled={isSubmitting || isUploading}
+          />
         </div>
       </div>
 
@@ -576,11 +588,11 @@ const CreateCar = () => {
         <Button type="button" variant="outline" onClick={onPrevious}>
           Voltar
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? (
+        <Button type="submit" disabled={isSubmitting || isUploading}>
+          {isSubmitting || isUploading ? (
             <>
               <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-              Enviando...
+              {isUploading ? "Enviando imagens..." : "Enviando..."}
             </>
           ) : (
             "Publicar Anúncio"

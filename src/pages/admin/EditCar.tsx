@@ -1,9 +1,9 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, FormProvider } from "react-hook-form";
 import { useToast } from "@/components/ui/use-toast";
-import { v4 as uuidv4 } from "uuid";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2Icon } from "lucide-react";
 import {
@@ -19,10 +19,8 @@ import { BasicInfoForm } from "./cars/components/BasicInfoForm";
 import { DetailsForm } from "./cars/components/DetailsForm";
 import { ImagesForm } from "./cars/components/ImagesForm";
 import { useCarData } from "./cars/hooks/useCarData";
-import { useImageHandling } from "./cars/utils/imageUtils";
 import { carFormSchema, CarFormValues } from "./cars/types";
 import { useImageUploader } from "@/hooks/useImageUploader";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 
 const EditCar = () => {
@@ -33,7 +31,7 @@ const EditCar = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingImages, setExistingImages] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const { ImageUploaderComponent, uploadImages } = useImageUploader();
+  const { ImageUploaderComponent, uploadImages, isUploading } = useImageUploader();
 
   const form = useForm<CarFormValues>({
     resolver: zodResolver(carFormSchema),
@@ -80,6 +78,12 @@ const EditCar = () => {
       try {
         setIsLoading(true);
         
+        if (!id) {
+          throw new Error("ID do carro não encontrado");
+        }
+        
+        console.log("🔍 Buscando imagens para o carro ID:", id);
+        
         // Buscar imagens existentes
         const { data: carImages, error: imagesError } = await supabase
           .from('car_images')
@@ -87,13 +91,13 @@ const EditCar = () => {
           .eq('car_id', id);
           
         if (imagesError) {
-          console.error('Erro ao buscar imagens:', imagesError);
+          console.error('❌ Erro ao buscar imagens:', imagesError);
         } else {
-          console.log("Imagens carregadas:", carImages);
+          console.log("✅ Imagens carregadas:", carImages);
           setExistingImages(carImages || []);
         }
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
+        console.error('❌ Erro ao carregar dados:', error);
         toast({
           title: "Erro ao carregar dados",
           description: "Não foi possível carregar os dados do anúncio.",
@@ -166,14 +170,18 @@ const EditCar = () => {
         }
       }
 
-      // Process uploaded images
+      // Process uploaded images - Fixed upload process
       try {
         console.log("📸 Iniciando upload de imagens...");
         const resultadoUpload = await uploadImages(id);
         console.log(`✅ Upload de imagens concluído: ${resultadoUpload.length} imagens enviadas`);
       } catch (uploadError) {
         console.error("❌ Erro durante upload de imagens:", uploadError);
-        // Continua mesmo com erro no upload
+        toast({
+          title: "Aviso",
+          description: "Algumas imagens podem não ter sido salvas corretamente.",
+          variant: "destructive",
+        });
       }
 
       toast({
@@ -287,18 +295,25 @@ const EditCar = () => {
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="space-y-4">
-                    <Label>Fotos do Veículo</Label>
-                    <ImageUploaderComponent 
-                      carroId={id} 
-                      imagensExistentes={existingImages}
-                      maxImagens={10}
-                      disabled={isSubmitting} 
-                    />
+                    <div className="space-y-2">
+                      <p className="font-medium">Fotos do Veículo</p>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Adicione até 10 fotos do veículo. A primeira imagem será usada como capa.
+                      </p>
+                      
+                      <ImageUploaderComponent 
+                        carroId={id} 
+                        imagensExistentes={existingImages}
+                        maxImagens={10}
+                        disabled={isSubmitting || isUploading} 
+                      />
+                    </div>
                   </div>
                   
                   <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-md">
                     <p className="text-sm text-yellow-800">
                       <strong>Atenção:</strong> Revise todas as informações antes de salvar as alterações.
+                      As imagens serão salvas quando você clicar no botão "Salvar Alterações".
                     </p>
                   </div>
                 </CardContent>
@@ -312,12 +327,12 @@ const EditCar = () => {
                   </Button>
                   <Button 
                     type="submit" 
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || isUploading}
                   >
-                    {isSubmitting ? (
+                    {isSubmitting || isUploading ? (
                       <>
                         <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                        Salvando...
+                        {isUploading ? "Enviando imagens..." : "Salvando..."}
                       </>
                     ) : (
                       "Salvar Alterações"
@@ -333,4 +348,4 @@ const EditCar = () => {
   );
 };
 
-export default EditCar; 
+export default EditCar;
