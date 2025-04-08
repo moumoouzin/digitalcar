@@ -97,29 +97,29 @@ export type Database = {
       }
       car_images: {
         Row: {
-          car_id: string | null
-          created_at: string
+          car_id: string
+          created_at: string | null
           id: string
           image_url: string
           is_primary: boolean | null
         }
         Insert: {
-          car_id?: string | null
-          created_at?: string
+          car_id: string
+          created_at?: string | null
           id?: string
           image_url: string
           is_primary?: boolean | null
         }
         Update: {
-          car_id?: string | null
-          created_at?: string
+          car_id?: string
+          created_at?: string | null
           id?: string
           image_url?: string
           is_primary?: boolean | null
         }
         Relationships: [
           {
-            foreignKeyName: "car_images_car_id_fkey"
+            foreignKeyName: "fk_car_id"
             columns: ["car_id"]
             isOneToOne: false
             referencedRelation: "car_ads"
