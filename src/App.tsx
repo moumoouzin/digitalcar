@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   createBrowserRouter,
@@ -5,25 +6,26 @@ import {
 } from "react-router-dom";
 
 import Vehicles from "./pages/Vehicles";
-import Home from "./pages/Home";
-import CarDetails from "./pages/CarDetails";
+import Home from "./pages/Index";
+import CarDetails from "./pages/VehicleDetail";
 import Financing from "./pages/Financing";
-import Contact from "./pages/Contact";
-import About from "./pages/About";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import Schedule from "./pages/Schedule";
+import Contact from "./pages/NotFound";
+import About from "./pages/NotFound";
+import Terms from "./pages/NotFound";
+import Privacy from "./pages/NotFound";
+import Schedule from "./pages/NotFound";
 import NotFound from "./pages/NotFound";
-import AdminPanel from "./pages/admin/AdminPanel";
-import AdminCars from "./pages/admin/cars/AdminCars";
-import AdminFinancing from "./pages/admin/AdminFinancing";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminSchedule from "./pages/admin/AdminSchedule";
-import AdminSettings from "./pages/admin/AdminSettings";
+import AdminPanel from "./pages/admin/Dashboard";
+import AdminCars from "./pages/admin/CarsList";
+import AdminFinancing from "./pages/admin/FinancingRequests";
+import AdminUsers from "./pages/NotFound";
+import AdminSchedule from "./pages/NotFound";
+import AdminSettings from "./pages/NotFound";
 import CreateCar from "./pages/admin/CreateCar";
 import EditCar from "./pages/admin/EditCar";
 import Login from "./pages/admin/Login";
 import DiagnosticoUpload from "./pages/admin/DiagnosticoUpload";
+import TestUpload from "./pages/TestUpload";
 
 const router = createBrowserRouter([
   {
@@ -101,6 +103,10 @@ const router = createBrowserRouter([
   {
     path: "admin/painel/diagnostico-upload",
     element: <DiagnosticoUpload />
+  },
+  {
+    path: "admin/painel/test-upload",
+    element: <TestUpload />
   },
   {
     path: "*",

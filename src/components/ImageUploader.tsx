@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { XCircleIcon, PlusCircleIcon, ImageIcon } from "lucide-react";
@@ -417,13 +416,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         // Upload do arquivo
         console.log(`⬆️ Iniciando upload para: ${uniqueFileName}`);
         
-        // Verificar políticas de storage
+        // Test for storage policy
         try {
-          const { data: policyData, error: policyError } = await supabase.storage
+          const { data: policyData } = await supabase.storage
             .from('car-images')
             .getPublicUrl('test-policy-check.txt');
             
-          console.log("🔍 Teste de política de armazenamento:", policyError ? "erro" : "sucesso");
+          console.log("🔍 Teste de política de armazenamento: sucesso", policyData);
         } catch (policyTestError) {
           console.warn("⚠️ Erro ao testar políticas:", policyTestError);
         }
