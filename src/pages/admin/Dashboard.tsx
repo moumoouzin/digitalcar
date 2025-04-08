@@ -25,7 +25,7 @@ const AdminDashboard = () => {
           </p>
         </div>
         <Button asChild variant="outline">
-          <Link to="/vehicles" className="flex items-center gap-2">
+          <Link to="/veiculos" className="flex items-center gap-2">
             <Eye size={16} />
             Ver site
           </Link>
@@ -91,7 +91,7 @@ const AdminDashboard = () => {
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Link 
-            to="/admin/painel/cars/create" 
+            to="/admin/painel/car/create" 
             className="p-4 bg-neutral-800 text-white rounded hover:bg-neutral-700 transition flex items-center justify-center"
           >
             Criar Novo Anúncio

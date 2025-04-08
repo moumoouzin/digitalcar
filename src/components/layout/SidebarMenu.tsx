@@ -15,18 +15,18 @@ type MenuItem = {
 // Menu items for the main site
 const siteMenuItems: MenuItem[] = [
   { name: "Início", path: "/", icon: Home },
-  { name: "Veículos", path: "/vehicles", icon: Car },
-  { name: "Sobre Nós", path: "/about", icon: Info },
+  { name: "Veículos", path: "/veiculos", icon: Car },
+  { name: "Sobre Nós", path: "/sobre", icon: Info },
   { name: "FAQ", path: "/faq", icon: FileQuestion },
-  { name: "Contato", path: "/contact", icon: Phone },
+  { name: "Contato", path: "/contato", icon: Phone },
   { name: "Admin", path: "/admin/login", icon: User }
 ];
 
 // Menu items for the admin panel
 const adminMenuItems: MenuItem[] = [
-  { name: "Dashboard", path: "/admin/painel", icon: LayoutDashboard },
+  { name: "Dashboard", path: "/admin/painel/dashboard", icon: LayoutDashboard },
   { name: "Veículos", path: "/admin/painel/cars", icon: Car },
-  { name: "Financiamentos", path: "/admin/painel/financing", icon: FileText },
+  { name: "Financiamentos", path: "/admin/painel/financiamentos", icon: FileText },
   { name: "Diagnóstico de Upload", path: "/admin/painel/test-upload", icon: ImageIcon },
 ];
 

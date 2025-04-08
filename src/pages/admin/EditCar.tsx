@@ -84,21 +84,6 @@ const EditCar = () => {
         
         console.log("🔍 Buscando imagens para o carro ID:", id);
         
-        // Verificar se o bucket de imagens existe
-        const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-        
-        if (bucketsError) {
-          console.error('❌ Erro ao listar buckets:', bucketsError);
-          toast({
-            title: "Aviso",
-            description: "Não foi possível verificar o armazenamento de imagens",
-            variant: "destructive",
-          });
-        } else {
-          const bucketExists = buckets.some(b => b.name === 'car-images');
-          console.log(`ℹ️ Bucket 'car-images' ${bucketExists ? 'existe' : 'NÃO existe'}`);
-        }
-        
         // Buscar imagens existentes
         const { data: carImages, error: imagesError } = await supabase
           .from('car_images')
@@ -107,20 +92,15 @@ const EditCar = () => {
           
         if (imagesError) {
           console.error('❌ Erro ao buscar imagens:', imagesError);
-          toast({
-            title: "Erro ao carregar imagens",
-            description: "Não foi possível carregar as imagens do carro",
-            variant: "destructive",
-          });
         } else {
           console.log("✅ Imagens carregadas:", carImages);
           setExistingImages(carImages || []);
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error('❌ Erro ao carregar dados:', error);
         toast({
           title: "Erro ao carregar dados",
-          description: error.message || "Não foi possível carregar os dados do anúncio.",
+          description: "Não foi possível carregar os dados do anúncio.",
           variant: "destructive",
         });
       } finally {
@@ -168,7 +148,6 @@ const EditCar = () => {
       
       console.log("✅ Dados do anúncio atualizados com sucesso");
 
-      // Atualizar características
       await supabase
         .from('car_features')
         .delete()
@@ -186,36 +165,17 @@ const EditCar = () => {
 
         if (featuresError) {
           console.error('❌ Erro ao salvar recursos:', featuresError);
-          toast({
-            title: "Aviso",
-            description: "Algumas características podem não ter sido salvas corretamente.",
-            variant: "destructive",
-          });
         } else {
           console.log(`✅ ${selectedFeatures.length} recursos salvos com sucesso`);
         }
       }
 
-      // Processar imagens enviadas
+      // Process uploaded images - Fixed upload process
       try {
         console.log("📸 Iniciando upload de imagens...");
         const resultadoUpload = await uploadImages(id);
         console.log(`✅ Upload de imagens concluído: ${resultadoUpload.length} imagens enviadas`);
-        
-        if (resultadoUpload.length > 0) {
-          // Verificando se o upload foi bem-sucedido com uma consulta adicional
-          const { data: carImages, error: imagesError } = await supabase
-            .from('car_images')
-            .select('*')
-            .eq('car_id', id);
-            
-          if (imagesError) {
-            console.error('❌ Erro ao verificar imagens após upload:', imagesError);
-          } else {
-            console.log("✅ Verificação após upload: ", carImages?.length, " imagens encontradas");
-          }
-        }
-      } catch (uploadError: any) {
+      } catch (uploadError) {
         console.error("❌ Erro durante upload de imagens:", uploadError);
         toast({
           title: "Aviso",
@@ -340,13 +300,6 @@ const EditCar = () => {
                       <p className="text-sm text-muted-foreground mb-4">
                         Adicione até 10 fotos do veículo. A primeira imagem será usada como capa.
                       </p>
-                      
-                      <div className="bg-blue-50 border border-blue-200 p-4 rounded-md mb-4">
-                        <p className="text-sm text-blue-800">
-                          <strong>Importante:</strong> As imagens serão enviadas quando você clicar no botão "Salvar Alterações".
-                          Você pode adicionar várias imagens antes de salvar.
-                        </p>
-                      </div>
                       
                       <ImageUploaderComponent 
                         carroId={id} 
