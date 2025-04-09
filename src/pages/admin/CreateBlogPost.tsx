@@ -27,7 +27,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { v4 as uuidv4 } from "uuid";
 
-// Esquema de validação
+// Validation schema
 const formSchema = z.object({
   title: z.string().min(5, "O título deve ter pelo menos 5 caracteres").max(255),
   summary: z.string().max(500, "O resumo deve ter no máximo 500 caracteres").optional(),
@@ -59,7 +59,7 @@ const CreateBlogPost = () => {
     if (file) {
       setSelectedFile(file);
       
-      // Criar URL para pré-visualização
+      // Create URL for preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result as string);
@@ -74,20 +74,20 @@ const CreateBlogPost = () => {
     try {
       let coverImageUrl = null;
 
-      // Fazer upload da imagem, se fornecida
+      // Upload the image if provided
       if (selectedFile) {
         const fileExt = selectedFile.name.split('.').pop();
         const fileName = `${uuidv4()}.${fileExt}`;
         const filePath = `blog/${fileName}`;
 
-        // Upload para o bucket 'blog-images'
+        // Upload to the 'blog-images' bucket
         const { data: fileData, error: uploadError } = await supabase.storage
           .from('blog-images')
           .upload(filePath, selectedFile);
 
         if (uploadError) throw uploadError;
 
-        // Obter URL pública da imagem
+        // Get public URL for the image
         const { data: publicUrlData } = await supabase.storage
           .from('blog-images')
           .getPublicUrl(filePath);
@@ -97,7 +97,7 @@ const CreateBlogPost = () => {
         }
       }
 
-      // Criar post no banco de dados (usando type assertion para contornar limitações do TypeScript)
+      // Create post in database (using type assertion to work around TypeScript limitations)
       const { error: insertError } = await supabase
         .from('blog_posts')
         .insert({

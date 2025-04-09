@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
@@ -21,7 +20,6 @@ const Blog = () => {
   useEffect(() => {
     const fetchBlogPosts = async () => {
       try {
-        // Use type assertion to work around TypeScript limitations
         const { data, error } = await supabase
           .from('blog_posts')
           .select('*')
@@ -44,7 +42,6 @@ const Blog = () => {
     fetchBlogPosts();
   }, [toast]);
 
-  // Função para truncar texto mantendo palavras inteiras
   const truncateText = (text: string, maxLength: number) => {
     if (!text) return '';
     if (text.length <= maxLength) return text;

@@ -28,7 +28,7 @@ import * as z from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { BlogPost } from "@/types/blog";
 
-// Esquema de validação
+// Validation schema
 const formSchema = z.object({
   title: z.string().min(5, "O título deve ter pelo menos 5 caracteres").max(255),
   summary: z.string().max(500, "O resumo deve ter no máximo 500 caracteres").optional(),
@@ -58,11 +58,10 @@ const EditBlogPost = () => {
     },
   });
 
-  // Buscar dados do post
+  // Fetch post data
   useEffect(() => {
     const fetchPostData = async () => {
       try {
-        // Use type assertion to work around TypeScript limitations
         const { data, error } = await supabase
           .from('blog_posts')
           .select('*')
@@ -71,17 +70,18 @@ const EditBlogPost = () => {
 
         if (error) throw error;
 
-        // Preencher formulário com dados existentes
+        // Fill form with existing data
+        const post = data as BlogPost;
         form.reset({
-          title: data.title,
-          summary: data.summary || "",
-          content: data.content,
-          author: data.author || "",
+          title: post.title,
+          summary: post.summary || "",
+          content: post.content,
+          author: post.author || "",
         });
 
-        if (data.cover_image) {
-          setCurrentCoverImage(data.cover_image);
-          setPreviewImage(data.cover_image);
+        if (post.cover_image) {
+          setCurrentCoverImage(post.cover_image);
+          setPreviewImage(post.cover_image);
         }
       } catch (error) {
         console.error('Erro ao carregar post:', error);
@@ -106,7 +106,7 @@ const EditBlogPost = () => {
     if (file) {
       setSelectedFile(file);
       
-      // Criar URL para pré-visualização
+      // Create URL for preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result as string);
@@ -121,20 +121,20 @@ const EditBlogPost = () => {
     try {
       let coverImageUrl = currentCoverImage;
 
-      // Fazer upload da nova imagem, se fornecida
+      // Upload the new image if provided
       if (selectedFile) {
         const fileExt = selectedFile.name.split('.').pop();
         const fileName = `${uuidv4()}.${fileExt}`;
         const filePath = `blog/${fileName}`;
 
-        // Upload para o bucket 'blog-images'
+        // Upload to the 'blog-images' bucket
         const { error: uploadError } = await supabase.storage
           .from('blog-images')
           .upload(filePath, selectedFile);
 
         if (uploadError) throw uploadError;
 
-        // Obter URL pública da nova imagem
+        // Get public URL for the new image
         const { data: publicUrlData } = await supabase.storage
           .from('blog-images')
           .getPublicUrl(filePath);
@@ -144,7 +144,7 @@ const EditBlogPost = () => {
         }
       }
 
-      // Atualizar post no banco de dados (usando type assertion para contornar limitações do TypeScript)
+      // Update post in database (using type assertion to work around TypeScript limitations)
       const { error: updateError } = await supabase
         .from('blog_posts')
         .update({

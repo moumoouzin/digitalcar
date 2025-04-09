@@ -11,12 +11,12 @@ import { NavLink, useLocation } from "react-router-dom";
 export const SidebarMenu = () => {
   const location = useLocation();
   
-  // Verificar a rota ativa
+  // Check active route
   const isActive = (path) => {
     return location.pathname.startsWith(path);
   };
 
-  // Links da barra lateral
+  // Sidebar links
   const menuItems = [
     {
       name: "Dashboard",

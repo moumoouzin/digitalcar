@@ -23,7 +23,6 @@ const BlogPost = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        // Use type assertion to work around TypeScript limitations
         const { data, error } = await supabase
           .from('blog_posts')
           .select('*')

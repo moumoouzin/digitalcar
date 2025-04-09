@@ -37,11 +37,10 @@ const BlogList = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Buscar posts do blog
+  // Fetch blog posts
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        // Use type assertion to work around TypeScript limitations
         const { data, error } = await supabase
           .from("blog_posts")
           .select("*")
@@ -65,7 +64,7 @@ const BlogList = () => {
     fetchPosts();
   }, [toast]);
 
-  // Filtrar posts com base no termo de pesquisa
+  // Filter posts based on search term
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setFilteredPosts(posts);
@@ -82,20 +81,19 @@ const BlogList = () => {
     setFilteredPosts(filtered);
   }, [searchTerm, posts]);
 
-  // Truncar texto para visualização
+  // Truncate text for display
   const truncateText = (text: string | undefined, maxLength = 100) => {
     if (!text) return "";
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + "...";
   };
 
-  // Manipular exclusão de post
+  // Handle post deletion
   const handleDeletePost = async () => {
     if (!postToDelete) return;
     
     setIsDeleting(true);
     try {
-      // Use type assertion to work around TypeScript limitations
       const { error } = await supabase
         .from("blog_posts")
         .delete()
@@ -134,7 +132,7 @@ const BlogList = () => {
       </div>
 
       <div className="bg-white rounded-lg shadow p-6">
-        {/* Barra de pesquisa */}
+        {/* Search bar */}
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
@@ -232,7 +230,7 @@ const BlogList = () => {
         )}
       </div>
 
-      {/* Diálogo de confirmação de exclusão */}
+      {/* Confirmation dialog for deletion */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
