@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -54,11 +55,10 @@ const AdminLogin = () => {
       <div className="w-full max-w-md px-4">
         <div className="mb-8 text-center">
           <img
-            src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
+            src="/lovable-uploads/ae1de0d6-f893-4937-9b58-24500a96ea8b.png"
             alt="Digital Car Logo"
-            className="h-20 mx-auto mb-4 logo-shadow"
+            className="h-28 mx-auto mb-4 transition-all hover:scale-105"
           />
-          <h1 className="text-2xl font-bold text-neutral-800">Digital Car</h1>
         </div>
         
         <Card className="shadow-lg border-t-4 border-t-red-600">
@@ -115,4 +115,4 @@ const AdminLogin = () => {
   );
 };
 
-export default AdminLogin; 
+export default AdminLogin;

@@ -13,9 +13,9 @@ export const Header = () => {
         <div className="flex-shrink-0">
           <Link to="/">
             <img
-              src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
+              src="/lovable-uploads/ae1de0d6-f893-4937-9b58-24500a96ea8b.png"
               alt="Digital Car Logo"
-              className={`h-10 sm:h-16 md:h-20 logo-shadow transition-all duration-300 hover:scale-105 hover:brightness-110 cursor-pointer`}
+              className={`h-12 sm:h-20 md:h-24 transition-all duration-300 hover:scale-105 cursor-pointer`}
             />
           </Link>
         </div>

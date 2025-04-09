@@ -78,12 +78,11 @@ const AdminLayout = () => {
                     <div className="p-4 border-b border-neutral-700 flex items-center gap-2">
                       <Link to="/">
                         <img
-                          src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
+                          src="/lovable-uploads/ae1de0d6-f893-4937-9b58-24500a96ea8b.png"
                           alt="Digital Car Logo"
-                          className="h-8 logo-shadow"
+                          className="h-10"
                         />
                       </Link>
-                      <span className="font-bold">Digital Car</span>
                     </div>
                     <SidebarMenu />
                   </div>
@@ -93,9 +92,9 @@ const AdminLayout = () => {
             
             <Link to="/">
               <img
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
+                src="/lovable-uploads/ae1de0d6-f893-4937-9b58-24500a96ea8b.png"
                 alt="Digital Car Logo"
-                className="h-8 logo-shadow cursor-pointer hover:scale-105 transition-transform"
+                className="h-10 sm:h-14 cursor-pointer hover:scale-105 transition-transform"
               />
             </Link>
             <h1 className="text-lg font-bold hidden sm:block">Painel Administrativo</h1>
