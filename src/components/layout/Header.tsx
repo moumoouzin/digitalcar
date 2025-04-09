@@ -13,7 +13,7 @@ export const Header = () => {
         <div className="flex-shrink-0">
           <Link to="/">
             <img
-              src="/lovable-uploads/8246faea-92bd-45cb-8249-a7115f1d1687.png"
+              src="/lovable-uploads/b9730d5d-f658-4ea5-bf2a-a3bec869b11a.png"
               alt="Digital Car Logo"
               className={`h-12 sm:h-20 md:h-24 transition-all duration-300 hover:scale-105 cursor-pointer`}
             />
