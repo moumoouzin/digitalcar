@@ -23,7 +23,7 @@ export const Navigation = () => {
                 <Link to="/veiculos">Veículos</Link>
               </li>
               <li className="text-base md:text-lg font-semibold hover:text-white/80">
-                <Link to="/">Sobre Nós</Link>
+                <Link to="/blog">Blog</Link>
               </li>
               <li className="text-base md:text-lg font-semibold hover:text-white/80">
                 <Link to="/financiamento">Financiamento</Link>
@@ -89,11 +89,11 @@ export const Navigation = () => {
                 </Link>
               </li>
               <li className="text-sm font-semibold">
-                <Link to="/" 
+                <Link to="/blog" 
                   onClick={() => setIsMenuOpen(false)}
                   className="block py-1.5 px-2 rounded-md hover:bg-white/10"
                 >
-                  Sobre Nós
+                  Blog
                 </Link>
               </li>
               <li className="text-sm font-semibold">
