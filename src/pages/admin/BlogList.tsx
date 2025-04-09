@@ -24,14 +24,15 @@ import { MoreVertical, Edit, Trash, Search, FileText, Plus } from "lucide-react"
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { BlogPost } from "@/types/blog";
 
 const BlogList = () => {
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [postToDelete, setPostToDelete] = useState(null);
+  const [postToDelete, setPostToDelete] = useState<BlogPost | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -40,10 +41,11 @@ const BlogList = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
+        // Use type assertion to work around TypeScript limitations
         const { data, error } = await supabase
           .from("blog_posts")
           .select("*")
-          .order("created_at", { ascending: false });
+          .order("created_at", { ascending: false }) as any;
 
         if (error) throw error;
         setPosts(data || []);
@@ -81,7 +83,7 @@ const BlogList = () => {
   }, [searchTerm, posts]);
 
   // Truncar texto para visualização
-  const truncateText = (text, maxLength = 100) => {
+  const truncateText = (text: string | undefined, maxLength = 100) => {
     if (!text) return "";
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + "...";
@@ -93,10 +95,11 @@ const BlogList = () => {
     
     setIsDeleting(true);
     try {
+      // Use type assertion to work around TypeScript limitations
       const { error } = await supabase
         .from("blog_posts")
         .delete()
-        .eq("id", postToDelete.id);
+        .eq("id", postToDelete.id) as any;
 
       if (error) throw error;
 

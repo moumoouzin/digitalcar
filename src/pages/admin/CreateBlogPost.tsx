@@ -41,7 +41,7 @@ const CreateBlogPost = () => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -97,7 +97,7 @@ const CreateBlogPost = () => {
         }
       }
 
-      // Criar post no banco de dados
+      // Criar post no banco de dados (usando type assertion para contornar limitações do TypeScript)
       const { error: insertError } = await supabase
         .from('blog_posts')
         .insert({
@@ -106,7 +106,7 @@ const CreateBlogPost = () => {
           content: values.content,
           author: values.author,
           cover_image: coverImageUrl,
-        });
+        }) as any;
 
       if (insertError) throw insertError;
 

@@ -26,6 +26,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { v4 as uuidv4 } from "uuid";
+import { BlogPost } from "@/types/blog";
 
 // Esquema de validação
 const formSchema = z.object({
@@ -43,7 +44,7 @@ const EditBlogPost = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [previewImage, setPreviewImage] = useState('');
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [currentCoverImage, setCurrentCoverImage] = useState('');
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -61,11 +62,12 @@ const EditBlogPost = () => {
   useEffect(() => {
     const fetchPostData = async () => {
       try {
+        // Use type assertion to work around TypeScript limitations
         const { data, error } = await supabase
           .from('blog_posts')
           .select('*')
           .eq('id', id)
-          .single();
+          .single() as any;
 
         if (error) throw error;
 
@@ -142,7 +144,7 @@ const EditBlogPost = () => {
         }
       }
 
-      // Atualizar post no banco de dados
+      // Atualizar post no banco de dados (usando type assertion para contornar limitações do TypeScript)
       const { error: updateError } = await supabase
         .from('blog_posts')
         .update({
@@ -153,7 +155,7 @@ const EditBlogPost = () => {
           cover_image: coverImageUrl,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', id);
+        .eq('id', id) as any;
 
       if (updateError) throw updateError;
 

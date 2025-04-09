@@ -11,10 +11,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, Calendar, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { BlogPost as BlogPostType } from "@/types/blog";
 
 const BlogPost = () => {
   const { id } = useParams();
-  const [post, setPost] = useState(null);
+  const [post, setPost] = useState<BlogPostType | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -22,11 +23,12 @@ const BlogPost = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
+        // Use type assertion to work around TypeScript limitations
         const { data, error } = await supabase
           .from('blog_posts')
           .select('*')
           .eq('id', id)
-          .single();
+          .single() as any;
 
         if (error) throw error;
         setPost(data);
@@ -49,7 +51,7 @@ const BlogPost = () => {
   }, [id, navigate, toast]);
 
   // Função para renderizar conteúdo com quebras de linha
-  const renderContent = (content) => {
+  const renderContent = (content: string) => {
     if (!content) return null;
     return content.split('\n').map((line, index) => (
       <p key={index} className="mb-4">
@@ -85,7 +87,7 @@ const BlogPost = () => {
                 <Skeleton className="h-5 w-32" />
                 <Skeleton className="h-5 w-32" />
               </div>
-              {post?.cover_image && <Skeleton className="w-full h-72 mb-8" />}
+              <Skeleton className="w-full h-72 mb-8" />
               <div className="space-y-3">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-full" />

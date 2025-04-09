@@ -11,19 +11,21 @@ import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { BlogPost } from "@/types/blog";
 
 const Blog = () => {
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchBlogPosts = async () => {
       try {
+        // Use type assertion to work around TypeScript limitations
         const { data, error } = await supabase
           .from('blog_posts')
           .select('*')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false }) as any;
 
         if (error) throw error;
         setPosts(data || []);
@@ -43,7 +45,8 @@ const Blog = () => {
   }, [toast]);
 
   // Função para truncar texto mantendo palavras inteiras
-  const truncateText = (text, maxLength) => {
+  const truncateText = (text: string, maxLength: number) => {
+    if (!text) return '';
     if (text.length <= maxLength) return text;
     const truncated = text.substr(0, text.lastIndexOf(' ', maxLength));
     return truncated + '...';
