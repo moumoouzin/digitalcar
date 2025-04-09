@@ -55,7 +55,7 @@ const AdminLogin = () => {
       <div className="w-full max-w-md px-4">
         <div className="mb-8 text-center">
           <img
-            src="/lovable-uploads/ae1de0d6-f893-4937-9b58-24500a96ea8b.png"
+            src="/lovable-uploads/8246faea-92bd-45cb-8249-a7115f1d1687.png"
             alt="Digital Car Logo"
             className="h-28 mx-auto mb-4 transition-all hover:scale-105"
           />
