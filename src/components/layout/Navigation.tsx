@@ -8,6 +8,11 @@ export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isMobile = useIsMobile();
 
+  const handleWhatsAppContact = (e) => {
+    e.preventDefault();
+    window.open("https://wa.me/5561981974187", "_blank");
+  };
+
   return (
     <nav className="bg-[#FF0000] text-neutral-100 py-3">
       <div className="max-w-7xl mx-auto px-4">
@@ -24,7 +29,7 @@ export const Navigation = () => {
                 <Link to="/financiamento">Financiamento</Link>
               </li>
               <li className="text-base md:text-lg font-semibold hover:text-white/80">
-                <Link to="/">Contato</Link>
+                <a href="#" onClick={handleWhatsAppContact}>Contato</a>
               </li>
               <li className="text-base md:text-lg font-semibold hover:text-white/80 flex items-center">
                 <Link to="/admin/login" className="flex items-center gap-1">
@@ -100,12 +105,15 @@ export const Navigation = () => {
                 </Link>
               </li>
               <li className="text-sm font-semibold">
-                <Link to="/" 
-                  onClick={() => setIsMenuOpen(false)}
+                <a href="#" 
+                  onClick={(e) => {
+                    setIsMenuOpen(false);
+                    handleWhatsAppContact(e);
+                  }}
                   className="block py-1.5 px-2 rounded-md hover:bg-white/10"
                 >
                   Contato
-                </Link>
+                </a>
               </li>
               <li className="text-sm font-semibold col-span-2">
                 <Link 

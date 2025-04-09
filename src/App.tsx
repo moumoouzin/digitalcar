@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Vehicles from "./pages/Vehicles";
 import VehicleDetail from "./pages/VehicleDetail";
 import Financing from "./pages/Financing";
+import Contact from "./pages/Contact";
 
 // Páginas de Admin
 import AdminLogin from "./pages/admin/Login";
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/veiculos" element={<Vehicles />} />
           <Route path="/veiculo/:id" element={<VehicleDetail />} />
           <Route path="/financiamento" element={<Financing />} />
+          <Route path="/contato" element={<Contact />} />
           
           {/* Rotas administrativas */}
           <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
