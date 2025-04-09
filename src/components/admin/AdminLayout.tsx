@@ -78,7 +78,7 @@ const AdminLayout = () => {
                     <div className="p-4 border-b border-neutral-700 flex items-center gap-2">
                       <Link to="/">
                         <img
-                          src="/lovable-uploads/b9730d5d-f658-4ea5-bf2a-a3bec869b11a.png"
+                          src="/lovable-uploads/89e612a8-2908-409e-9390-9cd2e694ad02.png"
                           alt="Digital Car Logo"
                           className="h-10"
                         />
@@ -92,7 +92,7 @@ const AdminLayout = () => {
             
             <Link to="/">
               <img
-                src="/lovable-uploads/b9730d5d-f658-4ea5-bf2a-a3bec869b11a.png"
+                src="/lovable-uploads/89e612a8-2908-409e-9390-9cd2e694ad02.png"
                 alt="Digital Car Logo"
                 className="h-10 sm:h-14 cursor-pointer hover:scale-105 transition-transform"
               />
