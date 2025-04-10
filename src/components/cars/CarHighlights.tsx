@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { CarCardSkeleton } from "./CarCardSkeleton";
 import { formatCurrency } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { 
+  Carousel, 
+  CarouselContent, 
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious
+} from "@/components/ui/carousel";
 
 interface Car {
   id: string;
@@ -39,7 +46,7 @@ export function CarHighlights() {
         `)
         .eq('status', 'active')
         .eq('is_featured', true)
-        .limit(3);
+        .limit(6); // Pegando até 6 carros para o carrossel
 
       if (error) throw error;
 
@@ -117,19 +124,36 @@ export function CarHighlights() {
         </p>
       </div>
       
-      <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {featuredCars.map((car) => (
-          <CarCard
-            key={car.id}
-            id={car.id}
-            image={getMainImage(car)}
-            name={car.title}
-            price={formatCurrency(car.price)}
-            features={car.features.slice(0, 2).map(f => f.name)}
-            compact={isMobile}
-          />
-        ))}
-      </div>
+      <Carousel 
+        className="w-full relative"
+        opts={{
+          align: "start",
+          loop: true,
+        }}
+      >
+        <CarouselContent className="-ml-2 md:-ml-4">
+          {featuredCars.map((car) => (
+            <CarouselItem 
+              key={car.id} 
+              className="pl-2 md:pl-4 basis-full sm:basis-1/2 lg:basis-1/3"
+            >
+              <CarCard
+                id={car.id}
+                image={getMainImage(car)}
+                name={car.title}
+                price={formatCurrency(car.price)}
+                features={car.features.slice(0, 2).map(f => f.name)}
+                compact={isMobile}
+              />
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+        
+        <div className="hidden sm:block">
+          <CarouselPrevious className="left-0 -translate-x-1/2" />
+          <CarouselNext className="right-0 translate-x-1/2" />
+        </div>
+      </Carousel>
       
       <div className="mt-8 sm:mt-12 text-center">
         <Link to="/veiculos">
