@@ -10,7 +10,7 @@ import Link from "@tiptap/extension-link";
 import Color from "@tiptap/extension-color";
 import { Bold, Italic, Underline as UnderlineIcon, Heading1, Heading2, Heading3, 
          AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, Image as ImageIcon,
-         ListOrdered, ListUl } from "lucide-react";
+         ListOrdered, List } from "lucide-react";
 import { Toggle } from "@/components/ui/toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +50,8 @@ export function RichTextEditor({
         HTMLAttributes: {
           class: 'text-blue-600 underline cursor-pointer',
         },
+        linkOnPaste: true,
+        openOnClick: false,
       }),
       Placeholder.configure({
         placeholder,
@@ -127,7 +129,7 @@ export function RichTextEditor({
         <Toggle
           size="sm"
           pressed={editor?.isActive('underline')}
-          onPressedChange={() => editor?.chain().focus().toggleUnderline().run()}
+          onPressedChange={() => editor?.chain().focus().toggleMark('underline').run()}
           aria-label="Sublinhado"
         >
           <UnderlineIcon className="h-4 w-4" />
@@ -199,7 +201,7 @@ export function RichTextEditor({
           onPressedChange={() => editor?.chain().focus().toggleBulletList().run()}
           aria-label="Lista não ordenada"
         >
-          <ListUl className="h-4 w-4" />
+          <List className="h-4 w-4" />
         </Toggle>
         
         <Toggle
