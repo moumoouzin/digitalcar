@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -342,9 +341,11 @@ const EditCar = () => {
     try {
       setIsSubmitting(true);
       
+      const priceAsNumber = parseFloat(data.price.replace(/[^\d,.]/g, '').replace(',', '.')) || 0;
+      
       const updatedCar = {
         title: data.title,
-        price: data.price, // removida a conversão para número
+        price: priceAsNumber,
         brand: isCustomBrand ? customBrand : selectedBrand,
         model: isCustomModel ? customModel : data.model,
         year: isCustomYear ? customYear : data.year,

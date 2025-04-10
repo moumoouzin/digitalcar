@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -219,9 +218,12 @@ const CreateCar = () => {
     try {
       setIsSubmitting(true);
       
+      // Parse the price string to a number, removing non-numeric characters
+      const priceAsNumber = parseFloat(data.price.replace(/[^\d,.]/g, '').replace(',', '.')) || 0;
+      
       const newCar = {
         title: data.title,
-        price: data.price, // removida a conversão para número
+        price: priceAsNumber, // Convertida para número após remover caracteres não numéricos
         brand: isCustomBrand ? customBrand : selectedBrand,
         model: isCustomModel ? customModel : data.model,
         year: isCustomYear ? customYear : data.year,
