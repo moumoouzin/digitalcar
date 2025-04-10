@@ -42,6 +42,7 @@ const CreateBlogPost = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,6 +59,7 @@ const CreateBlogPost = () => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
+      setUploadError(null);
       
       // Create URL for preview
       const reader = new FileReader();
@@ -70,6 +72,7 @@ const CreateBlogPost = () => {
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
+    setUploadError(null);
 
     try {
       let coverImageUrl = null;
@@ -77,18 +80,26 @@ const CreateBlogPost = () => {
       // Upload the image if provided
       if (selectedFile) {
         const fileExt = selectedFile.name.split('.').pop();
-        const fileName = `${uuidv4()}.${fileExt}`;
-        const filePath = `${fileName}`;
+        const fileName = `${uuidv4()}-${Date.now()}.${fileExt}`;
+        const filePath = fileName;
 
+        console.log('Iniciando upload da imagem para:', filePath);
+        
         // Upload to the 'blog-images' bucket
         const { data: fileData, error: uploadError } = await supabase.storage
           .from('blog-images')
-          .upload(filePath, selectedFile);
+          .upload(filePath, selectedFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
 
         if (uploadError) {
           console.error('Erro ao fazer upload da imagem:', uploadError);
-          throw uploadError;
+          setUploadError(`Erro ao fazer upload da imagem: ${uploadError.message}`);
+          throw new Error(`Erro ao fazer upload da imagem: ${uploadError.message}`);
         }
+
+        console.log('Imagem enviada com sucesso:', fileData);
 
         // Get public URL for the image
         const { data: publicUrlData } = await supabase.storage
@@ -97,8 +108,17 @@ const CreateBlogPost = () => {
 
         if (publicUrlData) {
           coverImageUrl = publicUrlData.publicUrl;
+          console.log('URL pública da imagem:', coverImageUrl);
         }
       }
+
+      console.log('Criando post do blog com dados:', {
+        title: values.title,
+        summary: values.summary || null,
+        content: values.content,
+        author: values.author || null,
+        cover_image: coverImageUrl,
+      });
 
       // Create post in database
       const { data, error: insertError } = await supabase
@@ -114,8 +134,10 @@ const CreateBlogPost = () => {
 
       if (insertError) {
         console.error('Erro ao inserir post:', insertError);
-        throw insertError;
+        throw new Error(`Erro ao inserir post: ${insertError.message}`);
       }
+
+      console.log('Post criado com sucesso:', data);
 
       toast({
         title: "Sucesso",
@@ -123,11 +145,11 @@ const CreateBlogPost = () => {
       });
 
       navigate('/admin/painel/blog');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao criar post:', error);
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao criar o post. Tente novamente.",
+        description: error.message || "Ocorreu um erro ao criar o post. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -240,6 +262,9 @@ const CreateBlogPost = () => {
                         />
                       </div>
                     </FormControl>
+                    {uploadError && (
+                      <p className="text-sm font-medium text-destructive">{uploadError}</p>
+                    )}
                     {previewImage && (
                       <div className="mt-4">
                         <p className="text-sm text-gray-500 mb-2">Pré-visualização:</p>
