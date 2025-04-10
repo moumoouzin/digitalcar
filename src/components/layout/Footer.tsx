@@ -1,3 +1,4 @@
+
 import React from "react";
 
 export const Footer = () => {
@@ -13,7 +14,7 @@ export const Footer = () => {
           Digital car, todos os direitos reservados
         </div>
         <div className="flex gap-4">
-          <a href="https://instagram.com" aria-label="Instagram" className="text-white hover:text-gray-300 transition-colors">
+          <a href="https://www.instagram.com/digitalcar_?igsh=NmM0MDYxamRzbm1q" aria-label="Instagram" className="text-white hover:text-gray-300 transition-colors">
             <div
               dangerouslySetInnerHTML={{
                 __html:
@@ -29,7 +30,7 @@ export const Footer = () => {
               }}
             />
           </a>
-          <a href="https://maps.google.com" aria-label="Location" className="text-white hover:text-gray-300 transition-colors">
+          <a href="https://g.co/kgs/XKMEZMv" aria-label="Location" className="text-white hover:text-gray-300 transition-colors">
             <div
               dangerouslySetInnerHTML={{
                 __html:

@@ -28,11 +28,11 @@ export const Header = () => {
               <div className="text-sm sm:text-base font-bold truncate">(61) 98197-4187</div>
               {!isMobile ? (
                 <div className="text-xs sm:text-sm font-medium">
-                  QSD 23 QND Condomínio Lote 04 Loja 01 - Taguatinga, Brasília - DF
+                  Qsd 23 lote 04 Taguatinga sul pistão sul cep 72020230
                 </div>
               ) : (
                 <div className="text-xs font-medium truncate">
-                  Taguatinga, Brasília - DF
+                  Taguatinga sul pistão sul, Brasília - DF
                 </div>
               )}
             </div>
@@ -40,7 +40,7 @@ export const Header = () => {
             {/* Separator and social icons */}
             <div className="hidden sm:block w-1 h-10 bg-[#FF0000] mx-1 sm:mx-4" />
             <div className="flex gap-2 sm:gap-4">
-              <a href="https://instagram.com" aria-label="Instagram" className="text-white hover:text-gray-300">
+              <a href="https://www.instagram.com/digitalcar_?igsh=NmM0MDYxamRzbm1q" aria-label="Instagram" className="text-white hover:text-gray-300">
                 <div
                   dangerouslySetInnerHTML={{
                     __html:
@@ -56,7 +56,7 @@ export const Header = () => {
                   }}
                 />
               </a>
-              <a href="https://maps.google.com" aria-label="Location" className="hidden sm:block text-white hover:text-gray-300">
+              <a href="https://g.co/kgs/XKMEZMv" aria-label="Location" className="hidden sm:block text-white hover:text-gray-300">
                 <div
                   dangerouslySetInnerHTML={{
                     __html:
