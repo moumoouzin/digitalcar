@@ -221,7 +221,7 @@ const CreateCar = () => {
       
       const newCar = {
         title: data.title,
-        price: parseFloat(data.price),
+        price: data.price, // removida a conversão para número
         brand: isCustomBrand ? customBrand : selectedBrand,
         model: isCustomModel ? customModel : data.model,
         year: isCustomYear ? customYear : data.year,

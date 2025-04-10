@@ -77,7 +77,7 @@ export const VehicleInfoStep = ({ form }: VehicleInfoStepProps) => {
             <FormItem>
               <FormLabel>Valor do veículo</FormLabel>
               <FormControl>
-                <Input placeholder="Ex: 50000" {...field} />
+                <Input placeholder="Ex: R$ 50.000,00" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -91,7 +91,7 @@ export const VehicleInfoStep = ({ form }: VehicleInfoStepProps) => {
             <FormItem>
               <FormLabel>Valor da entrada</FormLabel>
               <FormControl>
-                <Input placeholder="Ex: 10000" {...field} />
+                <Input placeholder="Ex: R$ 10.000,00" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
