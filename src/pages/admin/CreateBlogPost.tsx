@@ -26,6 +26,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { v4 as uuidv4 } from "uuid";
+import { RichTextEditor } from "@/components/RichTextEditor";
 
 // Validation schema
 const formSchema = z.object({
@@ -218,14 +219,15 @@ const CreateBlogPost = () => {
                   <FormItem>
                     <FormLabel>Conteúdo</FormLabel>
                     <FormControl>
-                      <Textarea 
+                      <RichTextEditor
+                        value={field.value}
+                        onChange={field.onChange}
                         placeholder="Digite o conteúdo completo do post"
-                        className="min-h-[300px]"
-                        {...field} 
+                        height="min-h-[400px]"
                       />
                     </FormControl>
                     <FormDescription>
-                      Use quebras de linha para separar parágrafos
+                      Use as ferramentas de formatação para enriquecer o conteúdo
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

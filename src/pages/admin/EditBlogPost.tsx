@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,6 +26,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { BlogPost } from "@/types/blog";
+import { RichTextEditor } from "@/components/RichTextEditor";
 
 // Validation schema
 const formSchema = z.object({
@@ -46,6 +46,7 @@ const EditBlogPost = () => {
   const [previewImage, setPreviewImage] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [currentCoverImage, setCurrentCoverImage] = useState('');
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -58,7 +59,6 @@ const EditBlogPost = () => {
     },
   });
 
-  // Fetch post data
   useEffect(() => {
     const fetchPostData = async () => {
       try {
@@ -70,7 +70,6 @@ const EditBlogPost = () => {
 
         if (error) throw error;
 
-        // Fill form with existing data
         const post = data as BlogPost;
         form.reset({
           title: post.title,
@@ -105,8 +104,8 @@ const EditBlogPost = () => {
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
+      setUploadError(null);
       
-      // Create URL for preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result as string);
@@ -117,24 +116,22 @@ const EditBlogPost = () => {
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
+    setUploadError(null);
 
     try {
       let coverImageUrl = currentCoverImage;
 
-      // Upload the new image if provided
       if (selectedFile) {
         const fileExt = selectedFile.name.split('.').pop();
         const fileName = `${uuidv4()}.${fileExt}`;
         const filePath = `blog/${fileName}`;
 
-        // Upload to the 'blog-images' bucket
         const { error: uploadError } = await supabase.storage
           .from('blog-images')
           .upload(filePath, selectedFile);
 
         if (uploadError) throw uploadError;
 
-        // Get public URL for the new image
         const { data: publicUrlData } = await supabase.storage
           .from('blog-images')
           .getPublicUrl(filePath);
@@ -144,7 +141,6 @@ const EditBlogPost = () => {
         }
       }
 
-      // Update post in database (using type assertion to work around TypeScript limitations)
       const { error: updateError } = await supabase
         .from('blog_posts')
         .update({
@@ -165,11 +161,11 @@ const EditBlogPost = () => {
       });
 
       navigate('/admin/painel/blog');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao atualizar post:', error);
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao atualizar o post. Tente novamente.",
+        description: error.message || "Ocorreu um erro ao atualizar o post. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -246,14 +242,15 @@ const EditBlogPost = () => {
                   <FormItem>
                     <FormLabel>Conteúdo</FormLabel>
                     <FormControl>
-                      <Textarea 
+                      <RichTextEditor
+                        value={field.value}
+                        onChange={field.onChange}
                         placeholder="Digite o conteúdo completo do post"
-                        className="min-h-[300px]"
-                        {...field} 
+                        height="min-h-[400px]"
                       />
                     </FormControl>
                     <FormDescription>
-                      Use quebras de linha para separar parágrafos
+                      Use as ferramentas de formatação para enriquecer o conteúdo
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -290,6 +287,9 @@ const EditBlogPost = () => {
                         />
                       </div>
                     </FormControl>
+                    {uploadError && (
+                      <p className="text-sm font-medium text-destructive">{uploadError}</p>
+                    )}
                     {previewImage && (
                       <div className="mt-4">
                         <p className="text-sm text-gray-500 mb-2">Imagem atual:</p>

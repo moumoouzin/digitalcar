@@ -49,16 +49,6 @@ const BlogPost = () => {
     }
   }, [id, navigate, toast]);
 
-  // Função para renderizar conteúdo com quebras de linha
-  const renderContent = (content: string) => {
-    if (!content) return null;
-    return content.split('\n').map((line, index) => (
-      <p key={index} className="mb-4">
-        {line}
-      </p>
-    ));
-  };
-
   return (
     <div className="flex flex-col min-h-screen font-inter">
       <link
@@ -125,9 +115,10 @@ const BlogPost = () => {
                 </div>
               )}
               
-              <div className="prose prose-red max-w-none text-gray-800 leading-relaxed">
-                {renderContent(post.content)}
-              </div>
+              <div 
+                className="prose prose-red max-w-none text-gray-800 leading-relaxed"
+                dangerouslySetInnerHTML={{ __html: post.content }}
+              />
             </article>
           ) : (
             <div className="text-center py-16">
