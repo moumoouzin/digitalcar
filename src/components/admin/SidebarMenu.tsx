@@ -29,14 +29,14 @@ export const SidebarMenu = () => {
       icon: <CarFront className="h-5 w-5" />,
     },
     {
-      name: "Blog",
-      path: "/admin/painel/blog",
-      icon: <BookOpen className="h-5 w-5" />,
-    },
-    {
       name: "Financiamentos",
       path: "/admin/painel/financiamentos",
       icon: <CreditCard className="h-5 w-5" />,
+    },
+    {
+      name: "Blog",
+      path: "/admin/painel/blog",
+      icon: <BookOpen className="h-5 w-5" />,
     },
   ];
 
