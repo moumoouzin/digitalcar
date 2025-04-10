@@ -1,16 +1,8 @@
+
 import React from "react";
 import { Link } from "react-router-dom";
 import { CarIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-interface Car {
-  id: string;
-  name: string;
-  price: number;
-  image: string;
-  features: string[];
-  compact: boolean;
-}
 
 export function CarCard({
   id,

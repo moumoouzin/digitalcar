@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -137,13 +136,13 @@ const Vehicles = () => {
             {cars.map((car) => (
               <CarCard
                 key={car.id}
+                id={car.id}
                 image={car.image || "/placeholder.svg"}
                 name={car.title}
                 price={formatPrice(car.price)}
                 features={car.features.length > 0 
                   ? car.features 
                   : [`${car.year}`, `${car.mileage} km`, car.transmission]}
-                carId={car.id}
               />
             ))}
           </div>
