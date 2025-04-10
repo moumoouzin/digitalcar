@@ -1,6 +1,8 @@
 
 import React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Link } from "react-router-dom";
+import { LogIn } from "lucide-react";
 
 export const Footer = () => {
   const isMobile = useIsMobile();
@@ -8,11 +10,18 @@ export const Footer = () => {
   return (
     <footer className="bg-black text-white py-4 sm:py-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
-        <img
-          src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
-          alt="Digital Car Logo"
-          className="h-16 md:h-20 logo-shadow transition-all duration-300 hover:scale-105 hover:brightness-110"
-        />
+        <div className="flex items-center gap-4">
+          <img
+            src="https://cdn.builder.io/api/v1/image/assets/TEMP/45acc7c153d418d558d10f359259f48c4341a6d5"
+            alt="Digital Car Logo"
+            className="h-16 md:h-20 logo-shadow transition-all duration-300 hover:scale-105 hover:brightness-110"
+          />
+          
+          <Link to="/admin/login" className="flex items-center gap-2 px-3 py-2 bg-red-600 hover:bg-red-700 transition-colors rounded text-sm sm:text-base">
+            <LogIn size={18} />
+            Área Admin
+          </Link>
+        </div>
         
         <div className="text-xs sm:text-sm font-normal text-center md:text-left my-2 md:my-0">
           Digital car, todos os direitos reservados
