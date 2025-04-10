@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CarCardSkeleton } from "./CarCardSkeleton";
 import { formatCurrency } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { 
   Carousel, 
   CarouselContent, 
@@ -81,23 +82,23 @@ export function CarHighlights() {
 
   if (isLoading) {
     return (
-      <div className="px-3 py-6 sm:px-4 sm:py-12 mx-auto max-w-7xl">
-        <div className="text-center mb-6 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+      <div className="px-3 py-4 sm:px-4 sm:py-8 mx-auto max-w-7xl">
+        <div className="text-center mb-4 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-gray-900">
             Nossos Destaques
           </h2>
-          <p className="mt-2 sm:mt-4 text-base sm:text-lg text-gray-500">
+          <p className="mt-1 sm:mt-3 text-sm sm:text-base text-gray-500">
             Veículos selecionados especialmente para você.
           </p>
         </div>
         
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {[...Array(3)].map((_, index) => (
+        <div className="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[...Array(isMobile ? 1 : 3)].map((_, index) => (
             <CarCardSkeleton key={index} />
           ))}
         </div>
         
-        <div className="mt-8 sm:mt-12 text-center">
+        <div className="mt-6 sm:mt-8 text-center">
           <Link to="/veiculos">
             <Button variant="outline" size={isMobile ? "default" : "lg"}>
               Ver mais veículos
@@ -114,12 +115,12 @@ export function CarHighlights() {
   }
 
   return (
-    <div className="px-3 py-6 sm:px-4 sm:py-12 mx-auto max-w-7xl">
-      <div className="text-center mb-6 sm:mb-12">
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900">
+    <div className="px-3 py-4 sm:px-4 sm:py-8 mx-auto max-w-7xl">
+      <div className="text-center mb-4 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-gray-900">
           Nossos Destaques
         </h2>
-        <p className="mt-2 sm:mt-4 text-base sm:text-lg text-gray-500">
+        <p className="mt-1 sm:mt-3 text-sm sm:text-base text-gray-500">
           Veículos selecionados especialmente para você.
         </p>
       </div>
@@ -149,15 +150,28 @@ export function CarHighlights() {
           ))}
         </CarouselContent>
         
-        <div className="hidden sm:block">
-          <CarouselPrevious className="left-0 -translate-x-1/2" />
-          <CarouselNext className="right-0 translate-x-1/2" />
+        <div className={isMobile ? "flex justify-center gap-4 mt-4" : "hidden sm:block"}>
+          {isMobile ? (
+            <>
+              <CarouselPrevious className="static translate-x-0 translate-y-0 h-8 w-8 rounded-full" />
+              <CarouselNext className="static translate-x-0 translate-y-0 h-8 w-8 rounded-full" />
+            </>
+          ) : (
+            <>
+              <CarouselPrevious className="left-0 -translate-x-1/2" />
+              <CarouselNext className="right-0 translate-x-1/2" />
+            </>
+          )}
         </div>
       </Carousel>
       
-      <div className="mt-8 sm:mt-12 text-center">
+      <div className="mt-6 sm:mt-8 text-center">
         <Link to="/veiculos">
-          <Button variant="outline" size={isMobile ? "default" : "lg"}>
+          <Button 
+            variant="outline" 
+            size={isMobile ? "default" : "lg"}
+            className="w-full sm:w-auto"
+          >
             Ver mais veículos
           </Button>
         </Link>

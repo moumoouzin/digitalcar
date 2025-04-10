@@ -5,8 +5,11 @@ import { Navigation } from "@/components/layout/Navigation";
 import { CarHighlights } from "@/components/cars/CarHighlights";
 import { AboutSection } from "@/components/about/AboutSection";
 import { Footer } from "@/components/layout/Footer";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Index = () => {
+  const isMobile = useIsMobile();
+
   return (
     <div className="flex flex-col min-h-screen font-inter">
       <link
@@ -16,8 +19,8 @@ const Index = () => {
       <Header />
       <Navigation />
       <main className="flex-grow">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-8">
-          <div className="mb-6 md:mb-10">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-6">
+          <div className="mb-4 md:mb-8">
             <CarHighlights />
           </div>
           <AboutSection />

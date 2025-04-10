@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,6 +99,27 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Melhorar toque em dispositivos móveis */
+  @media (max-width: 768px) {
+    button, a, [role="button"] {
+      @apply min-h-[44px] min-w-[44px];
+    }
+    
+    input, select, textarea {
+      @apply min-h-[44px];
+    }
+    
+    /* Aumentar zona de toque para listas/links */
+    li > a {
+      @apply py-2 px-2;
+    }
+    
+    /* Aumentar tamanho das fontes para melhor legibilidade */
+    html {
+      font-size: 16px;
+    }
+  }
 }
 
 /* Estilos para a logo */
@@ -109,4 +131,434 @@
 .logo-shadow:hover {
   filter: drop-shadow(0 8px 12px rgba(255, 0, 0, 0.3));
   transform: scale(1.05);
+}
+
+/* Estilos responsivos adicionais */
+.container {
+  width: 100%;
+  padding-right: 0.75rem;
+  padding-left: 0.75rem;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+@media (min-width: 640px) {
+  .container {
+    max-width: 640px;
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    max-width: 768px;
+    padding-right: 1.5rem;
+    padding-left: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1024px;
+    padding-right: 2rem;
+    padding-left: 2rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1280px;
+  }
+}
+
+/* Fix para problemas específicos no mobile */
+@media (max-width: 640px) {
+  .logo-shadow {
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+  }
+  
+  /* Melhorar espaçamento nos cards em dispositivos móveis */
+  .card {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Garantir que elementos de formulário não colidam em telas pequenas */
+  .form-group + .form-group {
+    margin-top: 1rem;
+  }
+
+  /* Ajustes para botões em interfaces de formulário */
+  button + button {
+    margin-top: 0.5rem;
+  }
+  
+  /* Melhorar legibilidade em telas pequenas */
+  h1 {
+    font-size: 1.75rem !important;
+    line-height: 2rem !important;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+    line-height: 1.75rem !important;
+  }
+  
+  h3 {
+    font-size: 1.25rem !important;
+    line-height: 1.5rem !important;
+  }
+  
+  p {
+    font-size: 0.9375rem !important;
+  }
+  
+  /* Melhorar visualização em carrosséis */
+  .carousel-item {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+/* Corrigir espaço para painel administrativo */
+.admin-content {
+  padding-left: 0;
+}
+
+@media (min-width: 768px) {
+  .admin-content {
+    padding-left: 16rem;
+  }
+}
+
+/* Evitar colisões em formulários */
+.tabs-content .card-content > * + * {
+  margin-top: 1rem;
+}
+
+/* Ajustes para ícones em dispositivos mobile */
+@media (max-width: 640px) {
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Melhorar visualização de elementos em formulários no mobile */
+@media (max-width: 768px) {
+  .tabs-list button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+  }
+  
+  label {
+    font-size: 0.875rem;
+  }
+  
+  input, select, textarea {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  /* Aumentar tamanho de botões para serem mais fáceis de tocar */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  /* Melhorar espaçamento vertical */
+  .section {
+    margin: 1.5rem 0;
+  }
+  
+  /* Adicionar espaço em torno de elementos clicáveis */
+  a:not(.inline-link) {
+    padding: 0.25rem 0;
+    display: inline-block;
+  }
+}
+
+/* Correção para tabs no formulário de criação de veículos */
+.create-car-tabs .tabs-list {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+/* Evitar sobreposição nas guias */
+[data-orientation="horizontal"] {
+  flex-wrap: nowrap !important;
+}
+
+/* Ajustes para cabeçalhos de tabs */
+.tab-header {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .tab-header {
+    font-size: 1.1rem;
+  }
+  
+  /* Melhorar espaçamento entre campos em mobile */
+  .form-row {
+    margin-bottom: 1rem;
+  }
+  
+  /* Ajuste para botões em telas menores */
+  .form-buttons {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+  }
+  
+  /* Evitar que textos longos quebrem o layout */
+  button {
+    white-space: nowrap;
+  }
+  
+  /* Melhorar leitura de labels */
+  label {
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+}
+
+/* Corrigir espaçamento vertical em formulários */
+.form-section + .form-section {
+  margin-top: 2rem;
+}
+
+/* Ajustar espaçamento em abas */
+.tabs-trigger {
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.875rem !important;
+}
+
+@media (min-width: 768px) {
+  .tabs-trigger {
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+  }
+}
+
+/* Garantir que os TabsTriggers não se sobreponham */
+[role="tablist"] {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+[role="tablist"]::-webkit-scrollbar {
+  display: none;
+}
+
+[role="tab"] {
+  white-space: nowrap;
+  min-width: max-content;
+}
+
+/* Melhorar altura das guias */
+.tabs-list-container {
+  height: auto !important;
+  min-height: 3rem;
+}
+
+/* Aumentar fonte dos botões de navegação principal */
+nav ul li a {
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+/* Transição suave para hover nos botões */
+nav ul li a {
+  transition: all 0.2s ease;
+}
+
+nav ul li a:hover {
+  text-shadow: 0 0 4px rgba(255, 255, 255, 0.5);
+}
+
+@media (min-width: 768px) {
+  nav ul li {
+    font-size: 1.125rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  nav ul li {
+    font-size: 1.25rem;
+  }
+}
+
+/* Estilos para o editor de texto rico */
+.ProseMirror {
+  min-height: 150px;
+  outline: none;
+}
+
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #adb5bd;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  margin: 1rem 0;
+  border-radius: 0.25rem;
+}
+
+.ProseMirror h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 1.25rem 0;
+}
+
+.ProseMirror h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 1rem 0;
+}
+
+.ProseMirror h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.75rem 0;
+}
+
+.ProseMirror ul, .ProseMirror ol {
+  padding-left: 2rem;
+  margin: 0.5rem 0;
+}
+
+.ProseMirror ul {
+  list-style-type: disc;
+}
+
+.ProseMirror ol {
+  list-style-type: decimal;
+}
+
+.ProseMirror blockquote {
+  border-left: 2px solid #e2e8f0;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 1rem;
+  color: #64748b;
+}
+
+/* Corrigir problemas com alinhamento de texto */
+.ProseMirror .text-center {
+  text-align: center;
+}
+
+.ProseMirror .text-right {
+  text-align: right;
+}
+
+.ProseMirror .text-left {
+  text-align: left;
+}
+
+/* Estilos para quando o conteúdo é renderizado no frontend */
+.prose img {
+  border-radius: 0.375rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  margin: 1.5rem 0;
+}
+
+.prose h1, .prose h2, .prose h3 {
+  font-weight: 700;
+  color: #111827;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.prose a {
+  color: #e11d48;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose a:hover {
+  color: #be123c;
+}
+
+.prose ul, .prose ol {
+  margin-left: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.prose blockquote {
+  border-left: 3px solid #e11d48;
+  padding-left: 1rem;
+  margin-left: 0;
+  color: #4b5563;
+  font-style: italic;
+}
+
+.prose strong {
+  font-weight: 600;
+  color: #111827;
+}
+
+.prose em {
+  color: #4b5563;
+}
+
+/* Melhorias específicas para navegação mobile */
+@media (max-width: 768px) {
+  .mobile-nav-button {
+    @apply flex items-center justify-center w-full py-3 rounded-md;
+  }
+  
+  /* Adiciona destaque para item atual na navegação mobile */
+  .mobile-nav-active {
+    @apply bg-white/20;
+  }
+  
+  /* Melhora visualização de menus em tela pequena */
+  .dropdown-menu {
+    @apply w-full left-0 right-0 mt-2;
+  }
+  
+  /* Melhora o espaçamento em formulários mobile */
+  .form-container {
+    @apply space-y-4 px-3;
+  }
+  
+  /* Garante que botões em dispositivos móveis são grandes o suficiente */
+  .mobile-btn {
+    @apply py-3 px-4 text-base w-full;
+  }
+  
+  /* Ajusta o tamanho das imagens em carrosséis */
+  .carousel-image {
+    @apply h-48 object-cover;
+  }
+}
+
+/* Animações para melhorar feedback visual */
+.tap-highlight {
+  @apply transition-colors active:bg-gray-100/50;
+}
+
+/* Toast mais visível em mobile */
+.mobile-toast {
+  @apply max-w-[90vw] text-sm py-3 px-4 shadow-lg;
+}
+
+/* Fixar botões no rodapé para facilitar acesso */
+.mobile-fixed-buttons {
+  @apply fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 flex gap-2 justify-around z-50;
 }
