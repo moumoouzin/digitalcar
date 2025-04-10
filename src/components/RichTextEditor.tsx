@@ -59,7 +59,6 @@ export function RichTextEditor({
       Image,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
-        alignments: ['left', 'center', 'right'],
       }),
       Color,
     ],
@@ -169,7 +168,7 @@ export function RichTextEditor({
         <Toggle
           size="sm"
           pressed={editor?.isActive({ textAlign: 'left' })}
-          onPressedChange={() => editor?.chain().focus().setTextAlign('left').run()}
+          onPressedChange={() => editor?.commands.setTextAlign('left')}
           aria-label="Alinhar à esquerda"
         >
           <AlignLeft className="h-4 w-4" />
@@ -178,7 +177,7 @@ export function RichTextEditor({
         <Toggle
           size="sm"
           pressed={editor?.isActive({ textAlign: 'center' })}
-          onPressedChange={() => editor?.chain().focus().setTextAlign('center').run()}
+          onPressedChange={() => editor?.commands.setTextAlign('center')}
           aria-label="Centralizar"
         >
           <AlignCenter className="h-4 w-4" />
@@ -187,7 +186,7 @@ export function RichTextEditor({
         <Toggle
           size="sm"
           pressed={editor?.isActive({ textAlign: 'right' })}
-          onPressedChange={() => editor?.chain().focus().setTextAlign('right').run()}
+          onPressedChange={() => editor?.commands.setTextAlign('right')}
           aria-label="Alinhar à direita"
         >
           <AlignRight className="h-4 w-4" />
