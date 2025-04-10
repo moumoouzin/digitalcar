@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { Menu, X, Home, Car, MessageSquare, FileText, Settings } from "lucide-react";
+import { Menu, X, Home, Car, MessageSquare, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -14,8 +14,8 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="bg-[#FF0000] text-neutral-100 py-2 sm:py-3 sticky top-0 z-50 shadow-md">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4">
+    <nav className="bg-[#FF0000] text-neutral-100 py-2 sm:py-3 sticky top-0 z-50 shadow-lg">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6">
         <div className="flex justify-between items-center">
           {/* Mobile brand name */}
           <div className="md:hidden text-white font-semibold text-base">
@@ -24,7 +24,7 @@ export const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex justify-center w-full">
-            <ul className="flex space-x-6 lg:space-x-12">
+            <ul className="flex space-x-8 lg:space-x-16">
               <li className="text-base md:text-lg font-semibold hover:text-white/80 transition-colors">
                 <Link to="/" className="flex items-center gap-1">
                   <Home size={18} className="hidden lg:inline" />

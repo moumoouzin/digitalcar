@@ -48,8 +48,8 @@ export const Header = () => {
           </div>
         )}
           
-        {/* Social icons - Mantidos em ambas as versões */}
-        <div className={`flex justify-center gap-4 ${isMobile ? 'mt-1 mb-1' : ''}`}>
+        {/* Social icons - Mantidos em ambas as versões, agora com mais espaço no desktop */}
+        <div className={`flex justify-center gap-4 ${isMobile ? 'mt-1 mb-1' : 'ml-6'}`}>
           <a href="https://www.instagram.com/digitalcar_?igsh=NmM0MDYxamRzbm1q" aria-label="Instagram" className="text-white hover:text-gray-300" target="_blank" rel="noopener noreferrer">
             <div
               dangerouslySetInnerHTML={{
