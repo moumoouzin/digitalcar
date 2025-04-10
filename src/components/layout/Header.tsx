@@ -9,37 +9,37 @@ export const Header = () => {
 
   return (
     <header className="bg-neutral-800 text-neutral-100 px-3 sm:px-6 py-3 sm:py-4">
-      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0">
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center">
         {/* Logo */}
-        <div className="flex-shrink-0 w-full sm:w-auto flex justify-center sm:justify-start mb-2 sm:mb-0">
+        <div className="w-full sm:w-auto flex justify-center sm:justify-start mb-3 sm:mb-0">
           <Link to="/">
             <img
               src="/lovable-uploads/89e612a8-2908-409e-9390-9cd2e694ad02.png"
               alt="Digital Car Logo"
-              className={`h-12 sm:h-16 md:h-20 transition-all duration-300 hover:scale-105 cursor-pointer`}
+              className="h-14 sm:h-16 md:h-20 transition-all duration-300 hover:scale-105 cursor-pointer"
             />
           </Link>
         </div>
         
-        {/* Informações de contato */}
+        {/* Informações de contato em duas colunas no mobile */}
         <div className="flex flex-col sm:items-end w-full sm:w-auto">
           {/* Telefone com ícone para fácil visualização */}
           <a 
             href="tel:+5561981974187" 
-            className="flex items-center justify-center sm:justify-end gap-1 mb-1 sm:mb-2 hover:text-gray-200 transition-colors"
+            className="flex items-center justify-center sm:justify-end gap-2 mb-2 hover:text-gray-200 transition-colors"
           >
-            <Phone size={16} className="text-[#FF0000]" />
+            <Phone size={isMobile ? 20 : 16} className="text-[#FF0000]" />
             <span className="text-sm sm:text-base font-bold">(61) 98197-4187</span>
           </a>
           
           {/* Endereço com ícone */}
           <a 
             href="https://g.co/kgs/XKMEZMv" 
-            className="flex items-center justify-center sm:justify-end gap-1 hover:text-gray-200 transition-colors"
+            className="flex items-center justify-center sm:justify-end gap-2 hover:text-gray-200 transition-colors mb-3 sm:mb-2"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <MapPin size={16} className="text-[#FF0000] flex-shrink-0" />
+            <MapPin size={isMobile ? 20 : 16} className="text-[#FF0000] flex-shrink-0" />
             {!isMobile ? (
               <div className="text-xs text-center sm:text-right sm:text-sm font-medium">
                 Qsd 23 lote 04 Taguatinga sul pistão sul cep 72020230
@@ -52,7 +52,7 @@ export const Header = () => {
           </a>
           
           {/* Social icons */}
-          <div className="flex justify-center sm:justify-end gap-4 mt-2">
+          <div className="flex justify-center sm:justify-end gap-4">
             <a href="https://www.instagram.com/digitalcar_?igsh=NmM0MDYxamRzbm1q" aria-label="Instagram" className="text-white hover:text-gray-300" target="_blank" rel="noopener noreferrer">
               <div
                 dangerouslySetInnerHTML={{
