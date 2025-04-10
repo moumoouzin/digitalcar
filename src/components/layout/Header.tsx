@@ -42,7 +42,7 @@ export const Header = () => {
             >
               <MapPin size={isMobile ? 20 : 16} className="text-[#FF0000] flex-shrink-0" />
               <div className="text-xs text-center sm:text-right sm:text-sm font-medium">
-                Qsd 23 lote 04 Taguatinga sul pistão sul cep 72020230
+                Qsd 23 lote 04 Taguatinga Sul Pistão Sul - CEP 72020230
               </div>
             </a>
           </div>
