@@ -12,7 +12,7 @@ interface Car {
   id: string;
   title: string;
   price: number;
-  images: { url: string }[];
+  images: { url: string, is_primary: boolean }[];
   features: { name: string }[];
 }
 
@@ -34,7 +34,7 @@ export function CarHighlights() {
           id,
           title,
           price,
-          car_images (image_url),
+          car_images (image_url, is_primary),
           car_features (feature_id)
         `)
         .eq('status', 'active')
@@ -47,7 +47,10 @@ export function CarHighlights() {
         id: car.id,
         title: car.title,
         price: car.price,
-        images: car.car_images.map((img: any) => ({ url: img.image_url })),
+        images: car.car_images.map((img: any) => ({ 
+          url: img.image_url,
+          is_primary: img.is_primary
+        })),
         features: car.car_features.map((feat: any) => ({ name: feat.feature_id })),
       }));
 
@@ -57,6 +60,16 @@ export function CarHighlights() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Helper function to get the best image for a car
+  const getMainImage = (car: Car): string => {
+    // First try to find a primary image
+    const primaryImage = car.images.find(img => img.is_primary);
+    if (primaryImage) return primaryImage.url;
+    
+    // If no primary image, use the first image
+    return car.images.length > 0 ? car.images[0].url : "";
   };
 
   if (isLoading) {
@@ -109,7 +122,7 @@ export function CarHighlights() {
           <CarCard
             key={car.id}
             id={car.id}
-            image={car.images.length > 0 ? car.images[0].url : ""}
+            image={getMainImage(car)}
             name={car.title}
             price={formatCurrency(car.price)}
             features={car.features.slice(0, 2).map(f => f.name)}

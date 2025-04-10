@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { supabase, SUPABASE_URL } from "@/integrations/supabase/client";
-import { Loader2Icon } from "lucide-react";
+import { Loader2Icon, ImageIcon } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
 
 const carFormSchema = z.object({
@@ -85,7 +86,7 @@ const EditCar = () => {
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([]);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
-  const [existingImages, setExistingImages] = useState<Array<{id: string, url: string}>>([]);
+  const [existingImages, setExistingImages] = useState<Array<{id: string, url: string, is_primary: boolean}>>([]); 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -204,13 +205,14 @@ const EditCar = () => {
       
       const { data: imagesData, error: imagesError } = await supabase
         .from('car_images')
-        .select('id, image_url')
+        .select('id, image_url, is_primary')
         .eq('car_id', id);
         
       if (!imagesError && imagesData) {
         const images = imagesData.map(img => ({
           id: img.id,
-          url: img.image_url
+          url: img.image_url,
+          is_primary: img.is_primary
         }));
         setExistingImages(images);
       }
@@ -285,6 +287,39 @@ const EditCar = () => {
       console.error('Erro ao remover imagem:', error);
       toast({
         title: "Erro ao remover imagem",
+        description: error.message || "Ocorreu um erro inesperado.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const setAsCoverImage = async (imageId: string) => {
+    try {
+      // Update is_primary flag for this image
+      const { error } = await supabase
+        .from('car_images')
+        .update({ is_primary: true })
+        .eq('id', imageId);
+        
+      if (error) throw error;
+      
+      // Update local state to reflect the change
+      const updatedImages = existingImages.map(img => ({
+        ...img,
+        is_primary: img.id === imageId
+      }));
+      
+      setExistingImages(updatedImages);
+      
+      toast({
+        title: "Imagem de capa definida",
+        description: "A imagem de capa foi atualizada com sucesso.",
+        variant: "default",
+      });
+    } catch (error: any) {
+      console.error('Erro ao definir imagem de capa:', error);
+      toast({
+        title: "Erro ao definir imagem de capa",
         description: error.message || "Ocorreu um erro inesperado.",
         variant: "destructive",
       });
@@ -385,10 +420,16 @@ const EditCar = () => {
         }
       }
 
+      // If there are new images to upload
       if (uploadedImages.length > 0) {
-        const uploadPromises = uploadedImages.map(file => 
-          uploadImageToSupabase(file, id)
-        );
+        // Check if there's at least one primary image in existing images
+        const hasPrimaryImage = existingImages.some(img => img.is_primary);
+        
+        // Upload the images, making the first one primary if there's no primary yet
+        const uploadPromises = uploadedImages.map((file, index) => {
+          const shouldBePrimary = !hasPrimaryImage && index === 0 && existingImages.length === 0;
+          return uploadImageToSupabase(file, id, shouldBePrimary);
+        });
 
         await Promise.all(uploadPromises);
       }
@@ -806,8 +847,25 @@ const EditCar = () => {
                           <img
                             src={img.url}
                             alt={`Imagem ${index + 1}`}
-                            className="h-24 w-full object-cover rounded-md"
+                            className={`h-24 w-full object-cover rounded-md ${img.is_primary ? 'ring-2 ring-primary ring-offset-2' : ''}`}
                           />
+                          <div className="absolute bottom-1 left-1 right-1 flex justify-between">
+                            {img.is_primary ? (
+                              <span className="bg-primary text-white text-xs px-2 py-1 rounded">
+                                Capa
+                              </span>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                className="text-xs px-2 py-1 h-auto opacity-0 group-hover:opacity-100 transition-opacity"
+                                onClick={() => setAsCoverImage(img.id)}
+                              >
+                                Definir como capa
+                              </Button>
+                            )}
+                          </div>
                           <button
                             type="button"
                             className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
@@ -869,6 +927,16 @@ const EditCar = () => {
                     </div>
                   </div>
                 )}
+
+                <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-md">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-5 w-5 text-blue-500" />
+                    <p className="text-sm text-blue-700 font-medium">Imagem de capa</p>
+                  </div>
+                  <p className="text-sm text-blue-600 mt-1">
+                    A imagem de capa será exibida como principal do anúncio. Selecione "Definir como capa" em uma das imagens existentes.
+                  </p>
+                </div>
               </div>
             </div>
 
