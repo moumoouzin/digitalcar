@@ -62,3 +62,5 @@ export const SidebarMenu = () => {
     </ul>
   );
 };
+
+export default SidebarMenu;
