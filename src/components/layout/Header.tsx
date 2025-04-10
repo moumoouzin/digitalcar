@@ -29,7 +29,7 @@ export const Header = () => {
               href="tel:+5561981974187" 
               className="flex items-center justify-center sm:justify-end gap-2 mb-2 hover:text-gray-200 transition-colors"
             >
-              <Phone size={isMobile ? 40 : 16} className="text-[#FF0000]" />
+              <Phone size={isMobile ? 60 : 16} className="text-[#FF0000]" />
               <span className="text-sm sm:text-base font-bold">(61) 98197-4187</span>
             </a>
             
