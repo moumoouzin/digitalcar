@@ -26,12 +26,9 @@ const AdminLogin = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulação de login - em produção, substitua por uma chamada à API
+    // Verificando as credenciais atualizadas
     setTimeout(() => {
-      // Credenciais válidas: admin/admin123 ou abc/123
-      if ((username === "admin" && password === "admin123") || 
-          (username === "abc" && password === "123")) {
-        // Armazenar token/estado de login no localStorage ou em um estado global
+      if (username === "Digitalcar@212441" && password === "digitalcaradm098") {
         localStorage.setItem("adminAuth", "true");
         toast({
           title: "Login realizado com sucesso",
@@ -90,11 +87,6 @@ const AdminLogin = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
-              </div>
-              <div className="text-sm">
-                <span className="text-muted-foreground">
-                  Use as credenciais: <strong>abc / 123</strong> ou <strong>admin / admin123</strong>
-                </span>
               </div>
             </CardContent>
             <CardFooter>
