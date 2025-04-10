@@ -78,14 +78,17 @@ const CreateBlogPost = () => {
       if (selectedFile) {
         const fileExt = selectedFile.name.split('.').pop();
         const fileName = `${uuidv4()}.${fileExt}`;
-        const filePath = `blog/${fileName}`;
+        const filePath = `${fileName}`;
 
         // Upload to the 'blog-images' bucket
         const { data: fileData, error: uploadError } = await supabase.storage
           .from('blog-images')
           .upload(filePath, selectedFile);
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Erro ao fazer upload da imagem:', uploadError);
+          throw uploadError;
+        }
 
         // Get public URL for the image
         const { data: publicUrlData } = await supabase.storage
@@ -97,18 +100,22 @@ const CreateBlogPost = () => {
         }
       }
 
-      // Create post in database (using type assertion to work around TypeScript limitations)
-      const { error: insertError } = await supabase
+      // Create post in database
+      const { data, error: insertError } = await supabase
         .from('blog_posts')
         .insert({
           title: values.title,
-          summary: values.summary,
+          summary: values.summary || null,
           content: values.content,
-          author: values.author,
+          author: values.author || null,
           cover_image: coverImageUrl,
-        }) as any;
+        })
+        .select();
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Erro ao inserir post:', insertError);
+        throw insertError;
+      }
 
       toast({
         title: "Sucesso",
