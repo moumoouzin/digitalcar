@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -5,6 +6,7 @@ import { CarCard } from "@/components/cars/CarCard";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { toast } from "@/hooks/use-toast";
 import { Header } from "@/components/layout/Header";
+import { Navigation } from "@/components/layout/Navigation";
 import { Footer } from "@/components/layout/Footer";
 import { Loader2 } from "lucide-react";
 
@@ -116,6 +118,7 @@ const Vehicles = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
+      <Navigation />
       <main className="flex-grow container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Veículos Disponíveis</h1>
         
