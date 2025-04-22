@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";
+import { Navigation } from "@/components/layout/Navigation";
 import { Footer } from "@/components/layout/Footer";
 import { toast } from "@/hooks/use-toast";
 import { ChevronLeft, Phone, Share2, ArrowRight, Loader2 } from "lucide-react";
@@ -24,6 +25,25 @@ interface CarDetail {
   features: string[];
 }
 
+const featureTranslations: Record<string, string> = {
+  "air-conditioning": "Ar-condicionado",
+  "power-steering": "Direção Hidráulica",
+  "electric-windows": "Vidros Elétricos",
+  "abs": "Freios ABS",
+  "airbags": "Airbags",
+  "alarm": "Alarme",
+  "central-lock": "Trava Central",
+  "leather-seats": "Bancos de Couro",
+  "alloy-wheels": "Rodas de Liga Leve",
+  "parking-sensor": "Sensor de Estacionamento",
+  "reverse-camera": "Câmera de Ré",
+  "roof-rack": "Rack de Teto",
+  "sunroof": "Teto Solar",
+  "integrated-gps": "GPS Integrado",
+  "bluetooth": "Bluetooth",
+  "cruise-control": "Piloto Automático",
+};
+
 const VehicleDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [car, setCar] = useState<CarDetail | null>(null);
@@ -41,7 +61,6 @@ const VehicleDetail = () => {
     try {
       setLoading(true);
       
-      // Fetch car details with related images and features in a single query
       const { data: carData, error } = await supabase
         .from('car_ads')
         .select(`
@@ -57,12 +76,10 @@ const VehicleDetail = () => {
         throw error;
       }
 
-      // Extract features from the nested data
       const features = carData.car_features 
         ? carData.car_features.map(feature => feature.feature_id)
         : [];
       
-      // Extract images from the nested data
       const images = carData.car_images && carData.car_images.length > 0
         ? carData.car_images.map(img => img.image_url)
         : [];
@@ -86,7 +103,6 @@ const VehicleDetail = () => {
 
   const incrementViewCount = async (carId: string) => {
     try {
-      // Fix for TypeScript error: Using an object for the params instead of a string directly
       await supabase.rpc('increment_view_count', {
         car_id: carId
       });
@@ -99,7 +115,6 @@ const VehicleDetail = () => {
     if (!car) return;
     
     try {
-      // Fix for TypeScript error: Using an object for the params instead of a string directly
       await supabase.rpc('increment_contact_count', {
         car_id: car.id
       });
@@ -129,7 +144,6 @@ const VehicleDetail = () => {
           url: window.location.href,
         });
       } else {
-        // Fallback for browsers that don't support navigator.share
         navigator.clipboard.writeText(window.location.href);
         toast({
           title: "Link copiado!",
@@ -157,9 +171,14 @@ const VehicleDetail = () => {
     }
   };
 
+  const getTranslatedFeature = (featureId: string) => {
+    return featureTranslations[featureId] || featureId;
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
+      <Navigation />
       <main className="flex-grow container mx-auto px-4 py-8">
         <Link to="/veiculos" className="flex items-center gap-1 mb-6 text-gray-600 hover:text-gray-900 transition-colors">
           <ChevronLeft size={16} />
@@ -183,7 +202,6 @@ const VehicleDetail = () => {
           </Card>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left column - Images */}
             <div className="space-y-4">
               <div className="relative bg-gray-100 rounded-lg overflow-hidden aspect-video">
                 {car.images.length > 0 ? (
@@ -242,7 +260,6 @@ const VehicleDetail = () => {
               )}
             </div>
 
-            {/* Right column - Details */}
             <div className="space-y-6">
               <div>
                 <h1 className="text-3xl font-bold">{car.title}</h1>
@@ -285,7 +302,7 @@ const VehicleDetail = () => {
                     {car.features.map((feature, index) => (
                       <div key={index} className="flex items-center gap-2">
                         <div className="w-1.5 h-1.5 bg-[#A82626] rounded-full" />
-                        <span className="text-sm">{feature}</span>
+                        <span className="text-sm">{getTranslatedFeature(feature)}</span>
                       </div>
                     ))}
                   </div>
