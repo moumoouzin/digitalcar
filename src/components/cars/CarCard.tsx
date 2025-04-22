@@ -4,6 +4,26 @@ import { Link } from "react-router-dom";
 import { CarIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
+// Feature translations from English to Portuguese
+const featureTranslations: Record<string, string> = {
+  "air-conditioning": "Ar-condicionado",
+  "power-steering": "Direção Hidráulica",
+  "electric-windows": "Vidros Elétricos",
+  "abs": "Freios ABS",
+  "airbags": "Airbags",
+  "alarm": "Alarme",
+  "central-lock": "Trava Central",
+  "leather-seats": "Bancos de Couro",
+  "alloy-wheels": "Rodas de Liga Leve",
+  "parking-sensor": "Sensor de Estacionamento",
+  "reverse-camera": "Câmera de Ré",
+  "roof-rack": "Rack de Teto",
+  "sunroof": "Teto Solar",
+  "integrated-gps": "GPS Integrado",
+  "bluetooth": "Bluetooth",
+  "cruise-control": "Piloto Automático",
+};
+
 export function CarCard({
   id,
   name,
@@ -19,6 +39,11 @@ export function CarCard({
   features?: string[];
   compact?: boolean;
 }) {
+  // Translate feature names to Portuguese
+  const translatedFeatures = features.map(feature => 
+    featureTranslations[feature] || feature
+  );
+
   return (
     <Link
       to={`/veiculo/${id}`}
@@ -54,9 +79,9 @@ export function CarCard({
           {price}
         </div>
         
-        {!compact && features.length > 0 && (
+        {!compact && translatedFeatures.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
-            {features.map((feature, index) => (
+            {translatedFeatures.map((feature, index) => (
               <Badge key={index} variant="outline" className="text-xs">
                 {feature}
               </Badge>
