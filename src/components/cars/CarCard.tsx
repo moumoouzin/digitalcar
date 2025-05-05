@@ -3,6 +3,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { CarIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { AspectRatio } from "@/components/ui/aspect-ratio";
 
 // Feature translations from English to Portuguese
 const featureTranslations: Record<string, string> = {
@@ -49,13 +50,15 @@ export function CarCard({
       to={`/veiculo/${id}`}
       className="group relative overflow-hidden rounded-lg border bg-white shadow transition-all hover:shadow-lg"
     >
-      <div className="aspect-h-9 aspect-w-16 relative w-full overflow-hidden">
+      <div className="relative w-full" style={{ height: "200px" }}>
         {image ? (
-          <img
-            src={image}
-            alt={name}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
+          <div className="h-full w-full overflow-hidden">
+            <img
+              src={image}
+              alt={name}
+              className="h-full w-full object-contain"
+            />
+          </div>
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gray-100">
             <CarIcon className="h-16 w-16 text-gray-400" />
