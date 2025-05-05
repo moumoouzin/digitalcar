@@ -52,11 +52,11 @@ export function CarCard({
     >
       <div className="relative w-full" style={{ height: "200px" }}>
         {image ? (
-          <div className="h-full w-full overflow-hidden">
+          <div className="h-full w-full overflow-hidden flex items-center justify-center">
             <img
               src={image}
               alt={name}
-              className="h-full w-full object-contain"
+              className="max-h-full max-w-full object-contain"
             />
           </div>
         ) : (

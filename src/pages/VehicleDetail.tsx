@@ -7,7 +7,8 @@ import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
 import { Footer } from "@/components/layout/Footer";
 import { toast } from "@/hooks/use-toast";
-import { ChevronLeft, Phone, Share2, ArrowRight, Loader2 } from "lucide-react";
+import { ChevronLeft, Phone, Share2, ArrowRight, Loader2, X, ZoomIn } from "lucide-react";
+import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 
 interface CarDetail {
   id: string;
@@ -49,6 +50,7 @@ const VehicleDetail = () => {
   const [car, setCar] = useState<CarDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -171,6 +173,14 @@ const VehicleDetail = () => {
     }
   };
 
+  const openFullscreenImage = (imageUrl: string) => {
+    setFullscreenImage(imageUrl);
+  };
+
+  const closeFullscreenImage = () => {
+    setFullscreenImage(null);
+  };
+
   const getTranslatedFeature = (featureId: string) => {
     return featureTranslations[featureId] || featureId;
   };
@@ -203,14 +213,23 @@ const VehicleDetail = () => {
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="space-y-4">
-              <div className="relative bg-gray-100 rounded-lg overflow-hidden aspect-video">
+              <div className="relative bg-gray-100 rounded-lg overflow-hidden" style={{ height: "400px" }}>
                 {car.images.length > 0 ? (
                   <>
                     <img 
                       src={car.images[currentImageIndex]} 
                       alt={car.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain cursor-zoom-in"
+                      onClick={() => openFullscreenImage(car.images[currentImageIndex])}
                     />
+                    <Button 
+                      variant="secondary" 
+                      size="icon" 
+                      className="absolute top-2 right-2 rounded-full opacity-70 hover:opacity-100" 
+                      onClick={() => openFullscreenImage(car.images[currentImageIndex])}
+                    >
+                      <ZoomIn size={20} />
+                    </Button>
                     {car.images.length > 1 && (
                       <div className="absolute inset-0 flex items-center justify-between px-4">
                         <Button 
@@ -252,7 +271,7 @@ const VehicleDetail = () => {
                       <img
                         src={image}
                         alt={`Imagem ${index + 1} do ${car.title}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
                     </div>
                   ))}
@@ -336,6 +355,26 @@ const VehicleDetail = () => {
         )}
       </main>
       <Footer />
+      
+      {/* Fullscreen Image Dialog */}
+      <Dialog open={!!fullscreenImage} onOpenChange={(open) => !open && closeFullscreenImage()}>
+        <DialogContent className="max-w-[90vw] max-h-[90vh] p-0 overflow-hidden bg-black/90">
+          <DialogClose className="absolute right-4 top-4 z-10">
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+              <X size={24} />
+            </Button>
+          </DialogClose>
+          <div className="relative w-full h-[90vh] flex items-center justify-center">
+            {fullscreenImage && (
+              <img 
+                src={fullscreenImage} 
+                alt="Visualização em tela cheia" 
+                className="max-w-full max-h-full object-contain"
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
