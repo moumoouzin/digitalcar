@@ -72,9 +72,9 @@ export function CarCard({
           {name}
         </h3>
         <div
-          className={`mt-1 font-semibold text-primary ${
+          className={`mt-1 font-semibold text-red-600 hover-scale ${
             compact ? "text-base" : "text-lg sm:text-xl"
-          }`}
+          } animate-pulse`}
         >
           {price}
         </div>

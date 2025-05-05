@@ -390,3 +390,14 @@ nav ul li a:hover {
 .prose em {
   color: #4b5563;
 }
+
+/* Hover Scale Animation for prices */
+.hover-scale {
+  transition: transform 0.3s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+  color: #ea384c !important;
+  text-shadow: 0 0 1px rgba(234, 56, 76, 0.3);
+}
