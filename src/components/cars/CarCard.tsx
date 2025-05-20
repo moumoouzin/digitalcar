@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Link } from "react-router-dom";
-import { CarIcon } from "lucide-react";
+import { CarIcon, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 
@@ -32,6 +32,7 @@ export function CarCard({
   image,
   features = [],
   compact = false,
+  brand = "", // Add brand prop with default empty string
 }: {
   id: string;
   name: string;
@@ -39,6 +40,7 @@ export function CarCard({
   image: string;
   features?: string[];
   compact?: boolean;
+  brand?: string; // Add brand to props type definition
 }) {
   // Translate feature names to Portuguese
   const translatedFeatures = features.map(feature => 
@@ -65,6 +67,19 @@ export function CarCard({
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+        
+        {/* Brand tag */}
+        {brand && (
+          <div className="absolute top-2 left-2">
+            <Badge 
+              variant="outline" 
+              className="bg-white/90 text-red-600 border-red-500 flex items-center gap-1 px-2 py-1"
+            >
+              <Tag size={12} className="text-red-600" />
+              <span>{brand}</span>
+            </Badge>
+          </div>
+        )}
       </div>
       <div className="p-3 sm:p-4">
         <h3

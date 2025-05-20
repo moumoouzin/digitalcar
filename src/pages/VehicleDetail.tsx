@@ -7,8 +7,9 @@ import { Header } from "@/components/layout/Header";
 import { Navigation } from "@/components/layout/Navigation";
 import { Footer } from "@/components/layout/Footer";
 import { toast } from "@/hooks/use-toast";
-import { ChevronLeft, Phone, Share2, ArrowRight, Loader2, X, ZoomIn } from "lucide-react";
+import { ChevronLeft, Phone, Share2, ArrowRight, Loader2, X, ZoomIn, Tag } from "lucide-react";
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 interface CarDetail {
   id: string;
@@ -230,6 +231,18 @@ const VehicleDetail = () => {
                     >
                       <ZoomIn size={20} />
                     </Button>
+                    {/* Brand tag */}
+                    {car.brand && (
+                      <div className="absolute top-2 left-2">
+                        <Badge 
+                          variant="outline" 
+                          className="bg-white/90 text-red-600 border-red-500 flex items-center gap-1 px-2 py-1"
+                        >
+                          <Tag size={12} className="text-red-600" />
+                          <span>{car.brand}</span>
+                        </Badge>
+                      </div>
+                    )}
                     {car.images.length > 1 && (
                       <div className="absolute inset-0 flex items-center justify-between px-4">
                         <Button 
