@@ -67,19 +67,6 @@ export function CarCard({
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
-        
-        {/* Brand tag */}
-        {brand && (
-          <div className="absolute top-2 left-2">
-            <Badge 
-              variant="outline" 
-              className="bg-white/90 text-red-600 border-red-500 flex items-center gap-1 px-2 py-1"
-            >
-              <Tag size={12} className="text-red-600" />
-              <span>{brand}</span>
-            </Badge>
-          </div>
-        )}
       </div>
       <div className="p-3 sm:p-4">
         <h3
@@ -96,6 +83,19 @@ export function CarCard({
         >
           {price}
         </div>
+        
+        {/* Brand tag - moved below the price */}
+        {brand && (
+          <div className="mt-2">
+            <Badge 
+              variant="outline" 
+              className="bg-white/90 text-red-600 border-red-500 flex items-center gap-1 px-2 py-1"
+            >
+              <Tag size={12} className="text-red-600" />
+              <span>{brand}</span>
+            </Badge>
+          </div>
+        )}
         
         {!compact && translatedFeatures.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">

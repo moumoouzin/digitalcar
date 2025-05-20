@@ -146,6 +146,7 @@ const Vehicles = () => {
                 features={car.features.length > 0 
                   ? car.features 
                   : [`${car.year}`, `${car.mileage} km`, car.transmission]}
+                brand={car.brand} // Pass the brand to CarCard
               />
             ))}
           </div>
